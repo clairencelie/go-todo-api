@@ -11,5 +11,5 @@ Todo app feature list:
 - Get Todo
 - Delete Todo
 
-This app will be integrated with flutter (android only) to simulate the RESTful API consumtion to this project.
+This app will be integrated with flutter (android only) to simulate the RESTful API consumption to this project.
 Wish me luck :D.
