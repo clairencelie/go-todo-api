@@ -72,26 +72,6 @@ func TestInsertUser(t *testing.T) {
 	tx.Commit()
 }
 
-func TestDeleteUser(t *testing.T) {
-	db, _ := database.NewDB("./../../")
-
-	userRepository := repository.NewUserRepository()
-
-	ctx := context.Background()
-
-	tx, errTxBegin := db.Begin()
-
-	assert.Nil(t, errTxBegin)
-
-	err := userRepository.Delete(ctx, tx, 3)
-
-	if err == nil {
-		tx.Commit()
-	}
-
-	assert.Nil(t, err)
-}
-
 func TestUpdateUser(t *testing.T) {
 	db, _ := database.NewDB("./../../")
 
@@ -105,13 +85,33 @@ func TestUpdateUser(t *testing.T) {
 
 	userUpdateRequest := request.UserUpdateRequest{
 		Id:          5,
-		Username:    "pupu",
+		Username:    "pupi",
 		Name:        "Pupu Pipi Popo",
 		Email:       "pupu@example.xyz",
 		PhoneNumber: "0781724829",
 	}
 
 	err := userRepository.Update(ctx, tx, userUpdateRequest)
+
+	if err == nil {
+		tx.Commit()
+	}
+
+	assert.Nil(t, err)
+}
+
+func TestDeleteUser(t *testing.T) {
+	db, _ := database.NewDB("./../../")
+
+	userRepository := repository.NewUserRepository()
+
+	ctx := context.Background()
+
+	tx, errTxBegin := db.Begin()
+
+	assert.Nil(t, errTxBegin)
+
+	err := userRepository.Delete(ctx, tx, 3)
 
 	if err == nil {
 		tx.Commit()

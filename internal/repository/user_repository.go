@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"go_todo_api/internal/helper"
 	"go_todo_api/internal/model/entity"
 	"go_todo_api/internal/model/request"
 )
@@ -24,8 +25,7 @@ func NewUserRepository() UserRepository {
 }
 
 var (
-	errUserNotFound    = errors.New("user not found")
-	errRowsNotAffected = errors.New("no rows affected")
+	errUserNotFound = errors.New("user not found")
 )
 
 func (repository UserRepositoryImpl) Get(ctx context.Context, db *sql.DB, userId int) (entity.User, error) {
@@ -103,7 +103,7 @@ func (repository UserRepositoryImpl) Insert(ctx context.Context, tx *sql.Tx, use
 		return errExec
 	}
 
-	err := checkRowsAffected(sqlResult)
+	err := helper.CheckRowsAffected(sqlResult)
 
 	if err != nil {
 		return err
@@ -127,7 +127,7 @@ func (repository UserRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, use
 		return errExec
 	}
 
-	err := checkRowsAffected(sqlResult)
+	err := helper.CheckRowsAffected(sqlResult)
 
 	if err != nil {
 		return err
@@ -151,24 +151,10 @@ func (repository UserRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, use
 		return errExec
 	}
 
-	err := checkRowsAffected(sqlResult)
+	err := helper.CheckRowsAffected(sqlResult)
 
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func checkRowsAffected(sqlResult sql.Result) error {
-	rowsAffected, err := sqlResult.RowsAffected()
-
-	if err != nil {
-		return err
-	}
-
-	if rowsAffected == 0 {
-		return errRowsNotAffected
 	}
 
 	return nil
