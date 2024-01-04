@@ -1,4 +1,4 @@
-package database
+package integration
 
 import (
 	"go_todo_api/database"

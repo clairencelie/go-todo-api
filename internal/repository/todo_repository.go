@@ -8,7 +8,7 @@ import (
 )
 
 type TodoRepository interface {
-	Get(ctx context.Context, todoId int) entity.Todo
+	Get(ctx context.Context, db *sql.DB, todoId int) entity.Todo
 	GetAll(ctx context.Context) []entity.Todo
 	Insert(ctx context.Context, tx *sql.Tx, todo request.TodoCreateRequest) error
 	Update(ctx context.Context, tx *sql.Tx, todo request.TodoUpdateRequest) error

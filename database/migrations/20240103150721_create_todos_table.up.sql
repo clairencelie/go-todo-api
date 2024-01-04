@@ -6,7 +6,7 @@ CREATE TABLE
         description TEXT,
         is_done TINYINT NOT NULL DEFAULT 0,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         PRIMARY KEY(id),
         FOREIGN KEY (user_id) REFERENCES users(id)
     ) Engine = InnoDb;
