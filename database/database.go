@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"database/sql"
@@ -7,10 +7,10 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewDB() (*sql.DB, error) {
+func NewDB(configPath string) (*sql.DB, error) {
 	config := viper.New()
-	config.SetConfigFile(".env")
-	config.AddConfigPath("./../")
+	config.SetConfigName("config")
+	config.AddConfigPath(configPath)
 
 	err := config.ReadInConfig()
 
