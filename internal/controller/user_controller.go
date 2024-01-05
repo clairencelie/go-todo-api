@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -44,6 +45,16 @@ func (userController *UserControllerImpl) CreateUser(w http.ResponseWriter, r *h
 	}
 
 	if errCreateUser := userController.userService.Create(r.Context(), userCreateRequest); errCreateUser != nil {
+		if validationErrors, ok := errCreateUser.(validator.ValidationErrors); ok {
+			responseData := helper.ResponseData{
+				StatusCode: 400,
+				Message:    "validation error",
+				Data:       validationErrors.Error(),
+			}
+			helper.WriteResponse(w, responseData)
+			return
+		}
+
 		responseData := helper.ResponseData{
 			StatusCode: 500,
 			Message:    "failed to create new user",

@@ -9,13 +9,16 @@ import (
 	"go_todo_api/internal/service"
 	"net/http"
 
+	"github.com/go-playground/validator/v10"
 	_ "github.com/go-sql-driver/mysql"
 )
 
 func main() {
 	db, _ := database.NewDB(".")
 
-	userService := service.NewUserService(db, repository.NewUserRepository())
+	validate := validator.New()
+
+	userService := service.NewUserService(db, repository.NewUserRepository(), validate)
 	userController := controller.NewUserController(userService)
 
 	todoService := service.NewTodoService(db, repository.NewTodoRepository())

@@ -6,6 +6,8 @@ import (
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/model/response"
 	"go_todo_api/internal/repository"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type UserService interface {
@@ -19,12 +21,14 @@ type UserService interface {
 type UserServiceImpl struct {
 	db             *sql.DB
 	userRepository repository.UserRepository
+	validate       *validator.Validate
 }
 
-func NewUserService(db *sql.DB, userRepository repository.UserRepository) UserService {
+func NewUserService(db *sql.DB, userRepository repository.UserRepository, validate *validator.Validate) UserService {
 	return &UserServiceImpl{
 		db:             db,
 		userRepository: userRepository,
+		validate:       validate,
 	}
 }
 
@@ -73,6 +77,10 @@ func (userService *UserServiceImpl) FindAll(ctx context.Context) ([]response.Use
 }
 
 func (userService *UserServiceImpl) Create(ctx context.Context, user request.UserCreateRequest) error {
+	if err := userService.validate.StructCtx(ctx, user); err != nil {
+		return err
+	}
+
 	tx, errTxBegin := userService.db.Begin()
 
 	if errTxBegin != nil {
