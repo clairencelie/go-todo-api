@@ -18,7 +18,10 @@ func main() {
 	userService := service.NewUserService(db, repository.NewUserRepository())
 	userController := controller.NewUserController(userService)
 
-	router := router.NewRouter(userController)
+	todoService := service.NewTodoService(db, repository.NewTodoRepository())
+	todoController := controller.NewTodoController(todoService)
+
+	router := router.NewRouter(userController, todoController)
 
 	server := http.Server{
 		Addr:    "localhost:8080",

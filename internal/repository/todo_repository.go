@@ -51,8 +51,8 @@ func (repository TodoRepositoryImpl) Get(ctx context.Context, db *sql.DB, todoId
 
 		return todo, nil
 	}
-	// TODO: Change err user not found to todo not found
-	return entity.Todo{}, ErrUserNotFound
+
+	return entity.Todo{}, ErrNotFound
 }
 
 func (repository TodoRepositoryImpl) GetAll(ctx context.Context, db *sql.DB) ([]entity.Todo, error) {

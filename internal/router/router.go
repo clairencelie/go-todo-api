@@ -6,7 +6,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func NewRouter(userController controller.UserController) *httprouter.Router {
+func NewRouter(userController controller.UserController, todoController controller.TodoController) *httprouter.Router {
 	router := httprouter.New()
 
 	router.POST("/api/user", userController.CreateUser)
@@ -14,6 +14,12 @@ func NewRouter(userController controller.UserController) *httprouter.Router {
 	router.GET("/api/users", userController.GetAll)
 	router.PUT("/api/user/:userId", userController.Update)
 	router.DELETE("/api/user/:userId", userController.Remove)
+
+	router.POST("/api/todo", todoController.CreateTodo)
+	router.GET("/api/todo/:todoId", todoController.Get)
+	router.GET("/api/todos", todoController.GetAll)
+	router.PUT("/api/todo/:todoId", todoController.Update)
+	router.DELETE("/api/todo/:todoId", todoController.Remove)
 
 	return router
 }

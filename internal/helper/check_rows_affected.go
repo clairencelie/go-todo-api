@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	errRowsNotAffected = errors.New("no rows affected")
+	ErrRowsNotAffected = errors.New("no rows affected")
 )
 
 func CheckRowsAffected(sqlResult sql.Result) error {
@@ -17,7 +17,7 @@ func CheckRowsAffected(sqlResult sql.Result) error {
 	}
 
 	if rowsAffected == 0 {
-		return errRowsNotAffected
+		return ErrRowsNotAffected
 	}
 
 	return nil

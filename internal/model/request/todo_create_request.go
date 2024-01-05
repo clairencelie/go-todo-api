@@ -1,7 +1,7 @@
 package request
 
 type TodoCreateRequest struct {
-	UserId      int
+	UserId      int `json:"user_id"`
 	Title       string
 	Description string
 }

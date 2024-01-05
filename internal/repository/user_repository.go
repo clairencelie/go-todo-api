@@ -25,7 +25,7 @@ func NewUserRepository() UserRepository {
 }
 
 var (
-	ErrUserNotFound = errors.New("user not found")
+	ErrNotFound = errors.New("data not found")
 )
 
 func (repository UserRepositoryImpl) Get(ctx context.Context, db *sql.DB, userId int) (entity.User, error) {
@@ -57,7 +57,7 @@ func (repository UserRepositoryImpl) Get(ctx context.Context, db *sql.DB, userId
 		return user, nil
 	}
 
-	return entity.User{}, ErrUserNotFound
+	return entity.User{}, ErrNotFound
 }
 
 func (repository UserRepositoryImpl) GetAll(ctx context.Context, db *sql.DB) ([]entity.User, error) {

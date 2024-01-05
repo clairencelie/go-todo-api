@@ -69,7 +69,7 @@ func (userController *UserControllerImpl) Get(w http.ResponseWriter, r *http.Req
 	if errCastToInt != nil {
 		responseData := helper.ResponseData{
 			StatusCode: 500,
-			Message:    "failed to cast used id",
+			Message:    "failed to cast user id to int",
 			Err:        errCastToInt,
 		}
 		helper.WriteResponse(w, responseData)
@@ -85,7 +85,7 @@ func (userController *UserControllerImpl) Get(w http.ResponseWriter, r *http.Req
 			Err:        err,
 		}
 
-		if errors.Is(repository.ErrUserNotFound, err) {
+		if errors.Is(repository.ErrNotFound, err) {
 			responseData.StatusCode = 404
 			responseData.Message = "user not found"
 		}
@@ -100,7 +100,6 @@ func (userController *UserControllerImpl) Get(w http.ResponseWriter, r *http.Req
 		Data:       userResponse,
 	}
 	helper.WriteResponse(w, responseData)
-	return
 }
 
 func (userController *UserControllerImpl) GetAll(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
@@ -122,7 +121,6 @@ func (userController *UserControllerImpl) GetAll(w http.ResponseWriter, r *http.
 		Data:       userResponses,
 	}
 	helper.WriteResponse(w, responseData)
-	return
 }
 
 func (userController *UserControllerImpl) Update(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
@@ -203,5 +201,4 @@ func (userController *UserControllerImpl) Remove(w http.ResponseWriter, r *http.
 		StatusCode: 204,
 	}
 	helper.WriteResponse(w, responseData)
-	return
 }
