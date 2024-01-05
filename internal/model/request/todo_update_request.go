@@ -1,8 +1,8 @@
 package request
 
 type TodoUpdateRequest struct {
-	Id          int
-	Title       string
+	Id          int    `validate:"required"`
+	Title       string `validate:"required"`
 	Description string
-	IsDone      bool `json:"is_done"`
+	IsDone      bool `json:"is_done" validate:"required"`
 }
