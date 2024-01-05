@@ -5,5 +5,5 @@ type UserUpdateRequest struct {
 	Username    string
 	Name        string
 	Email       string
-	PhoneNumber string
+	PhoneNumber string `json:"phone_number"`
 }

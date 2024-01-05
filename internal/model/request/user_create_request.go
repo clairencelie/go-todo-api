@@ -5,5 +5,5 @@ type UserCreateRequest struct {
 	Password    string
 	Name        string
 	Email       string
-	PhoneNumber string
+	PhoneNumber string `json:"phone_number"`
 }
