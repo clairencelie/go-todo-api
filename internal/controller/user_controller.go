@@ -166,6 +166,16 @@ func (userController *UserControllerImpl) Update(w http.ResponseWriter, r *http.
 	err := userController.userService.Update(r.Context(), userUpdateRequest)
 
 	if err != nil {
+		if validationErrors, ok := err.(validator.ValidationErrors); ok {
+			responseData := helper.ResponseData{
+				StatusCode: 400,
+				Message:    "validation error",
+				Data:       validationErrors.Error(),
+			}
+			helper.WriteResponse(w, responseData)
+			return
+		}
+
 		responseData := helper.ResponseData{
 			StatusCode: 500,
 			Message:    "internal server error",

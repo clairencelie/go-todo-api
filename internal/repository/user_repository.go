@@ -15,6 +15,7 @@ type UserRepository interface {
 	Insert(ctx context.Context, tx *sql.Tx, user request.UserCreateRequest) error
 	Update(ctx context.Context, tx *sql.Tx, user request.UserUpdateRequest) error
 	Delete(ctx context.Context, tx *sql.Tx, userId int) error
+	DeleteUserTodo(ctx context.Context, tx *sql.Tx, userId int) error
 }
 
 type UserRepositoryImpl struct {
@@ -138,6 +139,30 @@ func (repository UserRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, use
 
 func (repository UserRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, userId int) error {
 	query := "DELETE FROM users WHERE id = ?"
+
+	stmt, errPrepare := tx.PrepareContext(ctx, query)
+
+	if errPrepare != nil {
+		return errPrepare
+	}
+
+	sqlResult, errExec := stmt.ExecContext(ctx, userId)
+
+	if errExec != nil {
+		return errExec
+	}
+
+	err := helper.CheckRowsAffected(sqlResult)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repository UserRepositoryImpl) DeleteUserTodo(ctx context.Context, tx *sql.Tx, userId int) error {
+	query := "DELETE FROM todos WHERE user_id = ?"
 
 	stmt, errPrepare := tx.PrepareContext(ctx, query)
 

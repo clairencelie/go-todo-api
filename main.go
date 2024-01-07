@@ -21,7 +21,7 @@ func main() {
 	userService := service.NewUserService(db, repository.NewUserRepository(), validate)
 	userController := controller.NewUserController(userService)
 
-	todoService := service.NewTodoService(db, repository.NewTodoRepository())
+	todoService := service.NewTodoService(db, repository.NewTodoRepository(), validate)
 	todoController := controller.NewTodoController(todoService)
 
 	router := router.NewRouter(userController, todoController)

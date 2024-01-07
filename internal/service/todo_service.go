@@ -6,6 +6,8 @@ import (
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/model/response"
 	"go_todo_api/internal/repository"
+
+	"github.com/go-playground/validator/v10"
 )
 
 type TodoService interface {
@@ -19,12 +21,14 @@ type TodoService interface {
 type TodoServiceImpl struct {
 	db             *sql.DB
 	todoRepository repository.TodoRepository
+	validate       *validator.Validate
 }
 
-func NewTodoService(db *sql.DB, todoRepository repository.TodoRepository) TodoService {
+func NewTodoService(db *sql.DB, todoRepository repository.TodoRepository, validate *validator.Validate) TodoService {
 	return &TodoServiceImpl{
 		db:             db,
 		todoRepository: todoRepository,
+		validate:       validate,
 	}
 }
 
@@ -76,6 +80,11 @@ func (todoService *TodoServiceImpl) FindAll(ctx context.Context) ([]response.Tod
 }
 
 func (todoService *TodoServiceImpl) Create(ctx context.Context, todo request.TodoCreateRequest) error {
+	errValidation := todoService.validate.StructCtx(ctx, todo)
+	if errValidation != nil {
+		return errValidation
+	}
+
 	tx, errTxBegin := todoService.db.Begin()
 
 	if errTxBegin != nil {
@@ -94,6 +103,11 @@ func (todoService *TodoServiceImpl) Create(ctx context.Context, todo request.Tod
 }
 
 func (todoService *TodoServiceImpl) Update(ctx context.Context, todo request.TodoUpdateRequest) error {
+	errValidation := todoService.validate.StructCtx(ctx, todo)
+	if errValidation != nil {
+		return errValidation
+	}
+
 	tx, errTxBegin := todoService.db.Begin()
 
 	if errTxBegin != nil {

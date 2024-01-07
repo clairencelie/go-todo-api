@@ -87,7 +87,6 @@ func (userService *UserServiceImpl) Create(ctx context.Context, user request.Use
 		return errTxBegin
 	}
 
-	// need to validate user input later
 	err := userService.userRepository.Insert(ctx, tx, user)
 
 	if err != nil {
@@ -100,13 +99,16 @@ func (userService *UserServiceImpl) Create(ctx context.Context, user request.Use
 }
 
 func (userService *UserServiceImpl) Update(ctx context.Context, user request.UserUpdateRequest) error {
+	if err := userService.validate.StructCtx(ctx, user); err != nil {
+		return err
+	}
+
 	tx, errTxBegin := userService.db.Begin()
 
 	if errTxBegin != nil {
 		return errTxBegin
 	}
 
-	// need to validate user input later
 	err := userService.userRepository.Update(ctx, tx, user)
 
 	if err != nil {
@@ -125,7 +127,12 @@ func (userService *UserServiceImpl) Remove(ctx context.Context, userId int) erro
 		return errTxBegin
 	}
 
-	// need to validate user input later
+	errTodoDelete := userService.userRepository.DeleteUserTodo(ctx, tx, userId)
+	if errTodoDelete != nil {
+		tx.Rollback()
+		return errTodoDelete
+	}
+
 	err := userService.userRepository.Delete(ctx, tx, userId)
 
 	if err != nil {

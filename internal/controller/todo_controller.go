@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -49,9 +50,15 @@ func (todoController *TodoControllerImpl) CreateTodo(w http.ResponseWriter, r *h
 	err := todoController.todoService.Create(r.Context(), todoCreateRequest)
 
 	if err != nil {
-		responseData.StatusCode = 500
-		responseData.Message = "internal server error"
-		responseData.Err = err
+		if errValidation, ok := err.(validator.ValidationErrors); ok {
+			responseData.StatusCode = 400
+			responseData.Message = "validation error"
+			responseData.Data = errValidation.Error()
+		} else {
+			responseData.StatusCode = 500
+			responseData.Message = "internal server error"
+			responseData.Err = err
+		}
 
 		helper.WriteResponse(w, responseData)
 		return
@@ -155,7 +162,11 @@ func (todoController *TodoControllerImpl) Update(w http.ResponseWriter, r *http.
 	err := todoController.todoService.Update(r.Context(), todoUpdateRequest)
 
 	if err != nil {
-		if errors.Is(helper.ErrRowsNotAffected, err) {
+		if errValidation, ok := err.(validator.ValidationErrors); ok {
+			responseData.StatusCode = 400
+			responseData.Message = "validation error"
+			responseData.Data = errValidation.Error()
+		} else if errors.Is(helper.ErrRowsNotAffected, err) {
 			responseData.StatusCode = 500
 			responseData.Message = "no rows affected"
 			responseData.Err = err
