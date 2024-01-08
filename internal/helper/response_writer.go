@@ -26,7 +26,7 @@ func WriteResponse(w http.ResponseWriter, responseData ResponseData) error {
 	}
 
 	if responseData.Err != nil {
-		standardResponse.Data = responseData.Err
+		standardResponse.Data = responseData.Err.Error()
 	}
 
 	w.Header().Add("Content-Type", "application/json")

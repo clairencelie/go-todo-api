@@ -11,6 +11,7 @@ import (
 
 type UserRepository interface {
 	Get(ctx context.Context, db *sql.DB, userId int) (entity.User, error)
+	GetByUsername(ctx context.Context, db *sql.DB, userName string) (entity.User, error)
 	GetAll(ctx context.Context, db *sql.DB) ([]entity.User, error)
 	Insert(ctx context.Context, tx *sql.Tx, user request.UserCreateRequest) error
 	Update(ctx context.Context, tx *sql.Tx, user request.UserUpdateRequest) error
@@ -39,6 +40,38 @@ func (repository UserRepositoryImpl) Get(ctx context.Context, db *sql.DB, userId
 	}
 
 	rows, queryErr := stmt.QueryContext(ctx, userId)
+
+	if queryErr != nil {
+		return entity.User{}, queryErr
+	}
+
+	defer rows.Close()
+
+	if rows.Next() {
+		user := entity.User{}
+
+		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Name, &user.Email, &user.PhoneNumber, &user.CreatedAt, &user.UpdatedAt)
+
+		if err != nil {
+			return entity.User{}, err
+		}
+
+		return user, nil
+	}
+
+	return entity.User{}, ErrNotFound
+}
+
+func (repository UserRepositoryImpl) GetByUsername(ctx context.Context, db *sql.DB, username string) (entity.User, error) {
+	query := "SELECT id, username, password, name, email, phone_number, created_at, updated_at FROM users WHERE username = ? LIMIT 1"
+
+	stmt, err := db.PrepareContext(ctx, query)
+
+	if err != nil {
+		return entity.User{}, err
+	}
+
+	rows, queryErr := stmt.QueryContext(ctx, username)
 
 	if queryErr != nil {
 		return entity.User{}, queryErr

@@ -53,7 +53,7 @@ func (todoController *TodoControllerImpl) CreateTodo(w http.ResponseWriter, r *h
 		if errValidation, ok := err.(validator.ValidationErrors); ok {
 			responseData.StatusCode = 400
 			responseData.Message = "validation error"
-			responseData.Data = errValidation.Error()
+			responseData.Err = errValidation
 		} else {
 			responseData.StatusCode = 500
 			responseData.Message = "internal server error"
@@ -165,7 +165,7 @@ func (todoController *TodoControllerImpl) Update(w http.ResponseWriter, r *http.
 		if errValidation, ok := err.(validator.ValidationErrors); ok {
 			responseData.StatusCode = 400
 			responseData.Message = "validation error"
-			responseData.Data = errValidation.Error()
+			responseData.Err = errValidation
 		} else if errors.Is(helper.ErrRowsNotAffected, err) {
 			responseData.StatusCode = 500
 			responseData.Message = "no rows affected"

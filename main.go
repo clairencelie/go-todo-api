@@ -19,15 +19,18 @@ func main() {
 	validate := validator.New()
 
 	userService := service.NewUserService(db, repository.NewUserRepository(), validate)
+	authService := service.NewAuthService(db, repository.NewUserRepository(), validate)
+
 	userController := controller.NewUserController(userService)
+	authController := controller.NewAuthController(authService)
 
 	todoService := service.NewTodoService(db, repository.NewTodoRepository(), validate)
 	todoController := controller.NewTodoController(todoService)
 
-	router := router.NewRouter(userController, todoController)
+	router := router.NewRouter(userController, todoController, authController)
 
 	server := http.Server{
-		Addr:    "localhost:8080",
+		Addr:    "192.168.1.7:8080",
 		Handler: router,
 	}
 

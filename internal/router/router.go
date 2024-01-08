@@ -6,8 +6,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func NewRouter(userController controller.UserController, todoController controller.TodoController) *httprouter.Router {
+func NewRouter(userController controller.UserController, todoController controller.TodoController, authController controller.AuthController) *httprouter.Router {
 	router := httprouter.New()
+
+	router.POST("/api/login", authController.Login)
 
 	router.POST("/api/user", userController.CreateUser)
 	router.GET("/api/user/:userId", userController.Get)

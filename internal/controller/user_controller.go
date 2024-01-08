@@ -49,7 +49,7 @@ func (userController *UserControllerImpl) CreateUser(w http.ResponseWriter, r *h
 			responseData := helper.ResponseData{
 				StatusCode: 400,
 				Message:    "validation error",
-				Data:       validationErrors.Error(),
+				Err:        validationErrors,
 			}
 			helper.WriteResponse(w, responseData)
 			return
@@ -170,7 +170,7 @@ func (userController *UserControllerImpl) Update(w http.ResponseWriter, r *http.
 			responseData := helper.ResponseData{
 				StatusCode: 400,
 				Message:    "validation error",
-				Data:       validationErrors.Error(),
+				Err:        validationErrors,
 			}
 			helper.WriteResponse(w, responseData)
 			return
