@@ -16,6 +16,7 @@ type TodoService interface {
 	FindAll(ctx context.Context) ([]response.TodoResponse, error)
 	Create(ctx context.Context, todo request.TodoCreateRequest) error
 	Update(ctx context.Context, todo request.TodoUpdateRequest) error
+	UpdateTodoCompletion(ctx context.Context, todoId int) error
 	Remove(ctx context.Context, todoId int) error
 }
 
@@ -142,6 +143,24 @@ func (todoService *TodoServiceImpl) Update(ctx context.Context, todo request.Tod
 	}
 
 	err := todoService.todoRepository.Update(ctx, tx, todo)
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	tx.Commit()
+	return nil
+}
+
+func (todoService *TodoServiceImpl) UpdateTodoCompletion(ctx context.Context, todoId int) error {
+	tx, errTxBegin := todoService.db.Begin()
+
+	if errTxBegin != nil {
+		return errTxBegin
+	}
+
+	err := todoService.todoRepository.UpdateTodoCompletion(ctx, tx, todoId)
 
 	if err != nil {
 		tx.Rollback()

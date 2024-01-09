@@ -14,6 +14,7 @@ type TodoRepository interface {
 	GetAll(ctx context.Context, db *sql.DB) ([]entity.Todo, error)
 	Insert(ctx context.Context, tx *sql.Tx, todo request.TodoCreateRequest) error
 	Update(ctx context.Context, tx *sql.Tx, todo request.TodoUpdateRequest) error
+	UpdateTodoCompletion(ctx context.Context, tx *sql.Tx, todoId int) error
 	Delete(ctx context.Context, tx *sql.Tx, todoId int) error
 }
 
@@ -146,6 +147,30 @@ func (repository TodoRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, tod
 	}
 
 	sqlResult, errExec := stmt.ExecContext(ctx, todo.Title, todo.Description, todo.IsDone, todo.Id)
+
+	if errExec != nil {
+		return errExec
+	}
+
+	err := helper.CheckRowsAffected(sqlResult)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (repository TodoRepositoryImpl) UpdateTodoCompletion(ctx context.Context, tx *sql.Tx, todoId int) error {
+	query := "UPDATE todos SET is_done = NOT is_done WHERE id = ?"
+
+	stmt, errPrepare := tx.PrepareContext(ctx, query)
+
+	if errPrepare != nil {
+		return errPrepare
+	}
+
+	sqlResult, errExec := stmt.ExecContext(ctx, todoId)
 
 	if errExec != nil {
 		return errExec

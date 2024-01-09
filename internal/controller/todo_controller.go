@@ -19,6 +19,7 @@ type TodoController interface {
 	GetUserTodos(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	GetAll(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Update(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+	UpdateTodoCompletion(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Remove(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 }
 
@@ -200,6 +201,48 @@ func (todoController *TodoControllerImpl) Update(w http.ResponseWriter, r *http.
 	}
 
 	err := todoController.todoService.Update(r.Context(), todoUpdateRequest)
+
+	if err != nil {
+		if errValidation, ok := err.(validator.ValidationErrors); ok {
+			responseData.StatusCode = 400
+			responseData.Message = "validation error"
+			responseData.Err = errValidation
+		} else if errors.Is(helper.ErrRowsNotAffected, err) {
+			responseData.StatusCode = 500
+			responseData.Message = "no rows affected"
+			responseData.Err = err
+		} else {
+			responseData.StatusCode = 500
+			responseData.Message = "internal server error"
+			responseData.Err = err
+		}
+
+		helper.WriteResponse(w, responseData)
+		return
+	}
+
+	responseData.StatusCode = 204
+
+	helper.WriteResponse(w, responseData)
+}
+
+func (todoController *TodoControllerImpl) UpdateTodoCompletion(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	todoIdString := params.ByName("todoId")
+
+	todoId, errCastToInt := strconv.Atoi(todoIdString)
+
+	responseData := helper.ResponseData{}
+
+	if errCastToInt != nil {
+		responseData.StatusCode = 500
+		responseData.Message = "failed to cast todo id to int"
+		responseData.Err = errCastToInt
+
+		helper.WriteResponse(w, responseData)
+		return
+	}
+
+	err := todoController.todoService.UpdateTodoCompletion(r.Context(), todoId)
 
 	if err != nil {
 		if errValidation, ok := err.(validator.ValidationErrors); ok {
