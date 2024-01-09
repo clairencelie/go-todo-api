@@ -12,6 +12,7 @@ import (
 
 type TodoService interface {
 	Find(ctx context.Context, todoId int) (response.TodoResponse, error)
+	FindUserTodos(ctx context.Context, userId int) ([]response.TodoResponse, error)
 	FindAll(ctx context.Context) ([]response.TodoResponse, error)
 	Create(ctx context.Context, todo request.TodoCreateRequest) error
 	Update(ctx context.Context, todo request.TodoUpdateRequest) error
@@ -51,6 +52,32 @@ func (todoService *TodoServiceImpl) Find(ctx context.Context, todoId int) (respo
 
 	return todoResponse, nil
 
+}
+
+func (todoService *TodoServiceImpl) FindUserTodos(ctx context.Context, userId int) ([]response.TodoResponse, error) {
+	todos, err := todoService.todoRepository.GetUserTodos(ctx, todoService.db, userId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	todoResponses := []response.TodoResponse{}
+
+	for _, todo := range todos {
+		todoResponse := response.TodoResponse{
+			Id:          todo.Id,
+			UserId:      todo.UserId,
+			Title:       todo.Title,
+			Description: todo.Description,
+			IsDone:      todo.IsDone,
+			CreatedAt:   todo.CreatedAt,
+			UpdatedAt:   todo.UpdatedAt,
+		}
+
+		todoResponses = append(todoResponses, todoResponse)
+	}
+
+	return todoResponses, nil
 }
 
 func (todoService *TodoServiceImpl) FindAll(ctx context.Context) ([]response.TodoResponse, error) {

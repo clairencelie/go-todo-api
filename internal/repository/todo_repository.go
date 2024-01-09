@@ -10,6 +10,7 @@ import (
 
 type TodoRepository interface {
 	Get(ctx context.Context, db *sql.DB, todoId int) (entity.Todo, error)
+	GetUserTodos(ctx context.Context, db *sql.DB, userId int) ([]entity.Todo, error)
 	GetAll(ctx context.Context, db *sql.DB) ([]entity.Todo, error)
 	Insert(ctx context.Context, tx *sql.Tx, todo request.TodoCreateRequest) error
 	Update(ctx context.Context, tx *sql.Tx, todo request.TodoUpdateRequest) error
@@ -53,6 +54,34 @@ func (repository TodoRepositoryImpl) Get(ctx context.Context, db *sql.DB, todoId
 	}
 
 	return entity.Todo{}, ErrNotFound
+}
+
+func (repository TodoRepositoryImpl) GetUserTodos(ctx context.Context, db *sql.DB, userId int) ([]entity.Todo, error) {
+	query := "SELECT id, user_id, title, description, is_done, created_at, updated_at FROM todos WHERE user_id = ?"
+
+	rows, queryErr := db.Query(query, userId)
+
+	if queryErr != nil {
+		return nil, queryErr
+	}
+
+	defer rows.Close()
+
+	todos := []entity.Todo{}
+
+	for rows.Next() {
+		todo := entity.Todo{}
+
+		err := rows.Scan(&todo.Id, &todo.UserId, &todo.Title, &todo.Description, &todo.IsDone, &todo.CreatedAt, &todo.UpdatedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		todos = append(todos, todo)
+	}
+
+	return todos, nil
 }
 
 func (repository TodoRepositoryImpl) GetAll(ctx context.Context, db *sql.DB) ([]entity.Todo, error) {

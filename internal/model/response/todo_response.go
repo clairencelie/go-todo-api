@@ -1,11 +1,11 @@
 package response
 
 type TodoResponse struct {
-	Id          int
-	UserId      int
-	Title       string
-	Description string
-	IsDone      bool
-	CreatedAt   string
-	UpdatedAt   string
+	Id          int    `json:"id"`
+	UserId      int    `json:"user_id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	IsDone      bool   `json:"is_done"`
+	CreatedAt   string `json:"created_at"`
+	UpdatedAt   string `json:"updated_at"`
 }

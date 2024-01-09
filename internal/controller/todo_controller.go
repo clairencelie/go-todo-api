@@ -16,6 +16,7 @@ import (
 type TodoController interface {
 	CreateTodo(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Get(w http.ResponseWriter, r *http.Request, params httprouter.Params)
+	GetUserTodos(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	GetAll(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Update(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Remove(w http.ResponseWriter, r *http.Request, params httprouter.Params)
@@ -87,6 +88,45 @@ func (todoController *TodoControllerImpl) Get(w http.ResponseWriter, r *http.Req
 	}
 
 	todoResponse, err := todoController.todoService.Find(r.Context(), todoId)
+
+	if err != nil {
+		if errors.Is(repository.ErrNotFound, err) {
+			responseData.StatusCode = 404
+			responseData.Message = "todo not found"
+		} else {
+			responseData.StatusCode = 500
+			responseData.Message = "internal server error"
+			responseData.Err = err
+		}
+
+		helper.WriteResponse(w, responseData)
+		return
+	}
+
+	responseData.StatusCode = 200
+	responseData.Message = "todo found"
+	responseData.Data = todoResponse
+
+	helper.WriteResponse(w, responseData)
+}
+
+func (todoController *TodoControllerImpl) GetUserTodos(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+	userIdString := params.ByName("userId")
+
+	userId, errCastToInt := strconv.Atoi(userIdString)
+
+	responseData := helper.ResponseData{}
+
+	if errCastToInt != nil {
+		responseData.StatusCode = 500
+		responseData.Message = "failed to cast todo id to int"
+		responseData.Err = errCastToInt
+
+		helper.WriteResponse(w, responseData)
+		return
+	}
+
+	todoResponse, err := todoController.todoService.FindUserTodos(r.Context(), userId)
 
 	if err != nil {
 		if errors.Is(repository.ErrNotFound, err) {
