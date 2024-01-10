@@ -10,7 +10,7 @@ import (
 )
 
 func TestDatabaseConnection(t *testing.T) {
-	db, err := database.NewDB("./../../")
+	db, err := database.NewDB("./../../", true)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, db)

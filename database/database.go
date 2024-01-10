@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/viper"
 )
 
-func NewDB(configPath string) (*sql.DB, error) {
+func NewDB(configPath string, isTest bool) (*sql.DB, error) {
 	config := viper.New()
 	config.SetConfigName("config")
 	config.AddConfigPath(configPath)
@@ -21,6 +21,11 @@ func NewDB(configPath string) (*sql.DB, error) {
 	dbHost := config.GetString("DATABASE_HOST")
 	dbPort := config.GetString("DATABASE_PORT")
 	dbName := config.GetString("DATABASE_NAME")
+
+	if isTest {
+		dbName = config.GetString("DATABASE_TEST")
+	}
+
 	dbUser := config.GetString("DATABASE_USER")
 	dbPassword := config.GetString("DATABASE_PASSWORD")
 	dbProtocol := config.GetString("DATABASE_PROTOCOL")

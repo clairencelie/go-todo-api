@@ -17,7 +17,7 @@ func NewServer(handler http.Handler) *http.Server {
 }
 
 func NewDB() *sql.DB {
-	db, _ := database.NewDB(".")
+	db, _ := database.NewDB(".", false)
 	return db
 }
 

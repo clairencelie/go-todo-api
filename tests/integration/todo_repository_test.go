@@ -2,7 +2,6 @@ package integration
 
 import (
 	"context"
-	"go_todo_api/database"
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/repository"
 	"testing"
@@ -17,53 +16,60 @@ func TestNewTodoRepository(t *testing.T) {
 }
 
 func TestGetTodoById(t *testing.T) {
-	db, _ := database.NewDB("./../../")
+	ResetDB()
+
+	todoLastInsertId := InsertSingleTodo(TestDb)
 
 	todoRepository := repository.NewTodoRepository()
 
 	ctx := context.Background()
 
-	todo, err := todoRepository.Get(ctx, db, 1)
+	todo, err := todoRepository.Get(ctx, TestDb, int(todoLastInsertId))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, todo)
 
-	assert.Equal(t, 1, todo.Id)
-	assert.Equal(t, "Finish Repository Module", todo.Title)
-	assert.Equal(t, "Finish repository module in go-todo project today", todo.Description)
+	assert.Equal(t, todoLastInsertId, int64(todo.Id))
+	assert.Equal(t, "todo 1", todo.Title)
+	assert.Equal(t, "deskripsi todo 1", todo.Description)
 	assert.False(t, todo.IsDone)
 }
 
 func TestGetAllTodo(t *testing.T) {
-	db, _ := database.NewDB("./../../")
+	ResetDB()
+
+	InsertManyTodo(TestDb, 5)
 
 	todoRepository := repository.NewTodoRepository()
 
 	ctx := context.Background()
 
-	todos, err := todoRepository.GetAll(ctx, db)
+	todos, err := todoRepository.GetAll(ctx, TestDb)
 
 	assert.Nil(t, err)
 	assert.NotNil(t, todos)
 
 	assert.Greater(t, len(todos), 0)
+	assert.Len(t, todos, 5)
 }
 
 func TestInsertTodo(t *testing.T) {
-	db, _ := database.NewDB("./../../")
+	ResetDB()
+
+	userLastInsertId := InsertSingleUser(TestDb)
 
 	todoRepository := repository.NewTodoRepository()
 
 	ctx := context.Background()
 
-	tx, errTx := db.Begin()
+	tx, errTx := TestDb.Begin()
 
 	assert.Nil(t, errTx)
 
 	todoCreateRequest := request.TodoCreateRequest{
-		UserId:      2,
-		Title:       "Push Leng Mobel Lejen",
-		Description: "Push leng sampai mitik glory kacks",
+		UserId:      int(userLastInsertId),
+		Title:       "todo test",
+		Description: "todo single insertion test",
 	}
 
 	err := todoRepository.Insert(ctx, tx, todoCreateRequest)
@@ -75,20 +81,22 @@ func TestInsertTodo(t *testing.T) {
 }
 
 func TestUpdateTodo(t *testing.T) {
-	db, _ := database.NewDB("./../../")
+	ResetDB()
+
+	todoLastInsertId := InsertSingleTodo(TestDb)
 
 	todoRepository := repository.NewTodoRepository()
 
 	ctx := context.Background()
 
-	tx, errTx := db.Begin()
+	tx, errTx := TestDb.Begin()
 
 	assert.Nil(t, errTx)
 
 	todoUpdateRequest := request.TodoUpdateRequest{
-		Id:          2,
-		Title:       "Push Leng Mobel Lejen.",
-		Description: "Push leng sampai mitik aja kacks",
+		Id:          int(todoLastInsertId),
+		Title:       "test update todo",
+		Description: "test update todo description",
 		IsDone:      true,
 	}
 
@@ -101,17 +109,19 @@ func TestUpdateTodo(t *testing.T) {
 }
 
 func TestDeleteTodo(t *testing.T) {
-	db, _ := database.NewDB("./../../")
+	ResetDB()
+
+	todoLastInsertId := InsertSingleTodo(TestDb)
 
 	todoRepository := repository.NewTodoRepository()
 
 	ctx := context.Background()
 
-	tx, errTx := db.Begin()
+	tx, errTx := TestDb.Begin()
 
 	assert.Nil(t, errTx)
 
-	err := todoRepository.Delete(ctx, tx, 2)
+	err := todoRepository.Delete(ctx, tx, int(todoLastInsertId))
 
 	assert.Nil(t, err)
 	if err == nil {
