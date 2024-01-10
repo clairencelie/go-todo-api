@@ -29,6 +29,16 @@ func InsertSingleUser(testDb *sql.DB) int64 {
 	return userLastInsertId
 }
 
+func InsertManyUser(testDb *sql.DB, count int) {
+	for i := 1; i <= count; i++ {
+		_, errExecUser := testDb.Exec("INSERT INTO users (username, password, name, email, phone_number) VALUES (?, 'rahasia', ?, ?, ?)", "budi"+strconv.Itoa(i), "Budi "+strconv.Itoa(i), "budi"+strconv.Itoa(i)+"@example.xyz", "0812345"+strconv.Itoa(i))
+
+		if errExecUser != nil {
+			panic(errExecUser)
+		}
+	}
+}
+
 func InsertSingleTodo(testDb *sql.DB) int64 {
 	userSqlResult, errExecUser := testDb.Exec("INSERT INTO users (username, password, name, email, phone_number) VALUES ('budi', 'rahasia', 'Budi', 'budi@example.xyz', '081234567')")
 
