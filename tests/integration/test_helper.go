@@ -1,12 +1,34 @@
 package integration
 
 import (
+	"context"
 	"database/sql"
 	"go_todo_api/database"
+	"go_todo_api/internal/controller"
+	"go_todo_api/internal/repository"
+	"go_todo_api/internal/router"
+	"go_todo_api/internal/service"
 	"strconv"
+
+	"github.com/go-playground/validator/v10"
 )
 
 var TestDb, _ = database.NewDB("./../../", true)
+var Ctx = context.Background()
+
+var TodoRepository = repository.NewTodoRepository()
+var UserRepository = repository.NewUserRepository()
+
+var Validator = validator.New()
+var UserService = service.NewUserService(TestDb, UserRepository, Validator)
+var AuthService = service.NewAuthService(TestDb, UserRepository, Validator)
+var TodoService = service.NewTodoService(TestDb, TodoRepository, Validator)
+
+var UserController = controller.NewUserController(UserService)
+var AuthController = controller.NewAuthController(AuthService)
+var TodoController = controller.NewTodoController(TodoService)
+
+var Router = router.NewRouter(UserController, TodoController, AuthController)
 
 func ResetDB() {
 	TestDb.Exec("DELETE FROM todos")
