@@ -203,16 +203,10 @@ func (repository UserRepositoryImpl) DeleteUserTodo(ctx context.Context, tx *sql
 		return errPrepare
 	}
 
-	sqlResult, errExec := stmt.ExecContext(ctx, userId)
+	_, errExec := stmt.ExecContext(ctx, userId)
 
 	if errExec != nil {
 		return errExec
-	}
-
-	err := helper.CheckRowsAffected(sqlResult)
-
-	if err != nil {
-		return err
 	}
 
 	return nil
