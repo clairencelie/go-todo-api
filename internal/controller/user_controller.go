@@ -16,7 +16,6 @@ import (
 type UserController interface {
 	CreateUser(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Get(w http.ResponseWriter, r *http.Request, params httprouter.Params)
-	GetAll(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Update(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Remove(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 }
@@ -109,27 +108,6 @@ func (userController *UserControllerImpl) Get(w http.ResponseWriter, r *http.Req
 		StatusCode: 200,
 		Message:    "user found",
 		Data:       userResponse,
-	}
-	helper.WriteResponse(w, responseData)
-}
-
-func (userController *UserControllerImpl) GetAll(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	userResponses, err := userController.userService.FindAll(r.Context())
-
-	if err != nil {
-		responseData := helper.ResponseData{
-			StatusCode: 500,
-			Message:    "internal server error",
-			Err:        err,
-		}
-		helper.WriteResponse(w, responseData)
-		return
-	}
-
-	responseData := helper.ResponseData{
-		StatusCode: 200,
-		Message:    "users found",
-		Data:       userResponses,
 	}
 	helper.WriteResponse(w, responseData)
 }

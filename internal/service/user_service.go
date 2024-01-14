@@ -12,7 +12,6 @@ import (
 
 type UserService interface {
 	Find(ctx context.Context, userId int) (response.UserResponse, error)
-	FindAll(ctx context.Context) ([]response.UserResponse, error)
 	Create(ctx context.Context, user request.UserCreateRequest) error
 	Update(ctx context.Context, user request.UserUpdateRequest) error
 	Remove(ctx context.Context, userId int) error
@@ -33,6 +32,8 @@ func NewUserService(db *sql.DB, userRepository repository.UserRepository, valida
 }
 
 func (userService *UserServiceImpl) Find(ctx context.Context, userId int) (response.UserResponse, error) {
+	defer userService.db.Close()
+
 	user, err := userService.userRepository.Get(ctx, userService.db, userId)
 
 	if err != nil {
@@ -51,76 +52,41 @@ func (userService *UserServiceImpl) Find(ctx context.Context, userId int) (respo
 	return userResponse, nil
 }
 
-func (userService *UserServiceImpl) FindAll(ctx context.Context) ([]response.UserResponse, error) {
-	users, err := userService.userRepository.GetAll(ctx, userService.db)
-
-	if err != nil {
-		return nil, err
-	}
-
-	userResponses := []response.UserResponse{}
-
-	for _, user := range users {
-		userResponse := response.UserResponse{
-			Id:          user.Id,
-			Username:    user.Username,
-			Name:        user.Name,
-			Email:       user.Email,
-			PhoneNumber: user.PhoneNumber,
-			CreatedAt:   user.CreatedAt,
-		}
-
-		userResponses = append(userResponses, userResponse)
-	}
-
-	return userResponses, nil
-}
-
 func (userService *UserServiceImpl) Create(ctx context.Context, user request.UserCreateRequest) error {
+	defer userService.db.Close()
+
 	if err := userService.validate.StructCtx(ctx, user); err != nil {
 		return err
 	}
 
-	tx, errTxBegin := userService.db.Begin()
-
-	if errTxBegin != nil {
-		return errTxBegin
-	}
-
-	err := userService.userRepository.Insert(ctx, tx, user)
+	err := userService.userRepository.Insert(ctx, userService.db, user)
 
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	tx.Commit()
 	return nil
 }
 
 func (userService *UserServiceImpl) Update(ctx context.Context, user request.UserUpdateRequest) error {
+	defer userService.db.Close()
+
 	if err := userService.validate.StructCtx(ctx, user); err != nil {
 		return err
 	}
 
-	tx, errTxBegin := userService.db.Begin()
-
-	if errTxBegin != nil {
-		return errTxBegin
-	}
-
-	err := userService.userRepository.Update(ctx, tx, user)
+	err := userService.userRepository.Update(ctx, userService.db, user)
 
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	tx.Commit()
 	return nil
 }
 
 func (userService *UserServiceImpl) Remove(ctx context.Context, userId int) error {
+	defer userService.db.Close()
+
 	tx, errTxBegin := userService.db.Begin()
 
 	if errTxBegin != nil {

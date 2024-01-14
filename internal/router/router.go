@@ -13,7 +13,6 @@ func NewRouter(userController controller.UserController, todoController controll
 
 	router.POST("/api/user", userController.CreateUser)
 	router.GET("/api/user/:userId", userController.Get)
-	router.GET("/api/users", userController.GetAll)
 	router.PUT("/api/user/:userId", userController.Update)
 	router.DELETE("/api/user/:userId", userController.Remove)
 

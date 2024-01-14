@@ -12,9 +12,8 @@ import (
 type UserRepository interface {
 	Get(ctx context.Context, db *sql.DB, userId int) (entity.User, error)
 	GetByUsername(ctx context.Context, db *sql.DB, userName string) (entity.User, error)
-	GetAll(ctx context.Context, db *sql.DB) ([]entity.User, error)
-	Insert(ctx context.Context, tx *sql.Tx, user request.UserCreateRequest) error
-	Update(ctx context.Context, tx *sql.Tx, user request.UserUpdateRequest) error
+	Insert(ctx context.Context, db *sql.DB, user request.UserCreateRequest) error
+	Update(ctx context.Context, db *sql.DB, user request.UserUpdateRequest) error
 	Delete(ctx context.Context, tx *sql.Tx, userId int) error
 	DeleteUserTodo(ctx context.Context, tx *sql.Tx, userId int) error
 }
@@ -94,38 +93,10 @@ func (repository UserRepositoryImpl) GetByUsername(ctx context.Context, db *sql.
 	return entity.User{}, ErrNotFound
 }
 
-func (repository UserRepositoryImpl) GetAll(ctx context.Context, db *sql.DB) ([]entity.User, error) {
-	query := "SELECT id, username, password, name, email, phone_number, created_at, updated_at FROM users"
-
-	rows, queryErr := db.Query(query)
-
-	if queryErr != nil {
-		return nil, queryErr
-	}
-
-	defer rows.Close()
-
-	users := []entity.User{}
-
-	for rows.Next() {
-		user := entity.User{}
-
-		err := rows.Scan(&user.Id, &user.Username, &user.Password, &user.Name, &user.Email, &user.PhoneNumber, &user.CreatedAt, &user.UpdatedAt)
-
-		if err != nil {
-			return nil, err
-		}
-
-		users = append(users, user)
-	}
-
-	return users, nil
-}
-
-func (repository UserRepositoryImpl) Insert(ctx context.Context, tx *sql.Tx, user request.UserCreateRequest) error {
+func (repository UserRepositoryImpl) Insert(ctx context.Context, db *sql.DB, user request.UserCreateRequest) error {
 	query := "INSERT INTO users (username, password, name, email, phone_number) VALUES (?, ?, ?, ?, ?)"
 
-	stmt, errPrepare := tx.PrepareContext(ctx, query)
+	stmt, errPrepare := db.PrepareContext(ctx, query)
 
 	if errPrepare != nil {
 		return errPrepare
@@ -146,10 +117,10 @@ func (repository UserRepositoryImpl) Insert(ctx context.Context, tx *sql.Tx, use
 	return nil
 }
 
-func (repository UserRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, user request.UserUpdateRequest) error {
+func (repository UserRepositoryImpl) Update(ctx context.Context, db *sql.DB, user request.UserUpdateRequest) error {
 	query := "UPDATE users SET username=?, name=?, email=?, phone_number=? WHERE id=?"
 
-	stmt, errPrepare := tx.PrepareContext(ctx, query)
+	stmt, errPrepare := db.PrepareContext(ctx, query)
 
 	if errPrepare != nil {
 		return errPrepare
@@ -161,10 +132,10 @@ func (repository UserRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, use
 		return errExec
 	}
 
-	err := helper.CheckRowsAffected(sqlResult)
+	errRowsNotAffected := helper.CheckRowsAffected(sqlResult)
 
-	if err != nil {
-		return err
+	if errRowsNotAffected != nil {
+		return errRowsNotAffected
 	}
 
 	return nil
