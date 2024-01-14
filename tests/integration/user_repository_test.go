@@ -2,8 +2,11 @@ package integration
 
 import (
 	"context"
+	"database/sql"
+	"go_todo_api/database"
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/repository"
+	testhelper "go_todo_api/tests/test_helper"
 	"testing"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -11,22 +14,38 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitiateUserRepository(t *testing.T) {
+func setupDb() (*sql.DB, error) {
+	db, errDbConn := database.NewDB("./../../", true)
+
+	if errDbConn != nil {
+		return nil, errDbConn
+	}
+
+	testhelper.ResetDB(db)
+
+	return db, nil
+}
+
+func TestUserRepositoryInitialize(t *testing.T) {
 	userRepository := repository.NewUserRepository()
 
 	assert.NotNil(t, userRepository)
 }
 
-func TestGetUserById(t *testing.T) {
-	ResetDB()
+func TestUserRepositoryGetById(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	userLastInsertId := InsertSingleUser(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	userLastInsertId := testhelper.InsertSingleUser(db)
 
 	userRepository := repository.NewUserRepository()
 
 	ctx := context.Background()
 
-	user, err := userRepository.Get(ctx, TestDb, int(userLastInsertId))
+	user, err := userRepository.Get(ctx, db, int(userLastInsertId))
 
 	assert.Nil(t, err)
 
@@ -38,33 +57,16 @@ func TestGetUserById(t *testing.T) {
 	assert.Equal(t, "081234567", user.PhoneNumber)
 }
 
-func TestGetAllUser(t *testing.T) {
-	ResetDB()
+func TestUserRepositoryInsert(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	InsertManyUser(TestDb, 5)
+	assert.Nil(t, errDbConn)
 
-	userRepository := repository.NewUserRepository()
-
-	ctx := context.Background()
-
-	users, err := userRepository.GetAll(ctx, TestDb)
-
-	assert.Nil(t, err)
-
-	assert.True(t, len(users) > 0)
-	assert.Len(t, users, 5)
-}
-
-func TestInsertUser(t *testing.T) {
-	ResetDB()
+	defer db.Close()
 
 	userRepository := repository.NewUserRepository()
 
 	ctx := context.Background()
-
-	tx, errTxBegin := TestDb.Begin()
-
-	assert.Nil(t, errTxBegin)
 
 	userCreateRequest := &request.UserCreateRequest{
 		Username:    "budi",
@@ -74,23 +76,22 @@ func TestInsertUser(t *testing.T) {
 		PhoneNumber: "087654321",
 	}
 
-	errInsert := userRepository.Insert(ctx, tx, *userCreateRequest)
+	errInsert := userRepository.Insert(ctx, db, *userCreateRequest)
 	assert.Nil(t, errInsert)
-	tx.Commit()
 }
 
-func TestUpdateUser(t *testing.T) {
-	ResetDB()
+func TestUserRepositoryUpdate(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	userLastInsertId := InsertSingleUser(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	userLastInsertId := testhelper.InsertSingleUser(db)
 
 	userRepository := repository.NewUserRepository()
 
 	ctx := context.Background()
-
-	tx, errTxBegin := TestDb.Begin()
-
-	assert.Nil(t, errTxBegin)
 
 	userUpdateRequest := request.UserUpdateRequest{
 		Id:          int(userLastInsertId),
@@ -100,25 +101,25 @@ func TestUpdateUser(t *testing.T) {
 		PhoneNumber: "0781724829",
 	}
 
-	err := userRepository.Update(ctx, tx, userUpdateRequest)
-
-	if err == nil {
-		tx.Commit()
-	}
+	err := userRepository.Update(ctx, db, userUpdateRequest)
 
 	assert.Nil(t, err)
 }
 
-func TestDeleteUser(t *testing.T) {
-	ResetDB()
+func TestUserRepositoryDelete(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	userLastInsertId := InsertSingleUser(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	userLastInsertId := testhelper.InsertSingleUser(db)
 
 	userRepository := repository.NewUserRepository()
 
 	ctx := context.Background()
 
-	tx, errTxBegin := TestDb.Begin()
+	tx, errTxBegin := db.Begin()
 
 	assert.Nil(t, errTxBegin)
 

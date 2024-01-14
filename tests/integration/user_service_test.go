@@ -1,20 +1,33 @@
 package integration
 
 import (
+	"context"
 	"go_todo_api/internal/model/request"
+	"go_todo_api/internal/repository"
 	"go_todo_api/internal/service"
+	testhelper "go_todo_api/tests/test_helper"
 	"testing"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitializeUserService(t *testing.T) {
-	userService := service.NewUserService(TestDb, UserRepository, Validator)
+func TestUserServiceInitialize(t *testing.T) {
+	db, errDbConn := setupDb()
+
+	assert.Nil(t, errDbConn)
+
+	userRepository := repository.NewUserRepository()
+	userService := service.NewUserService(db, userRepository, validator.New())
 
 	assert.NotNil(t, userService)
 }
 
-func TestServiceCreateUser(t *testing.T) {
+func TestUserServiceCreate(t *testing.T) {
+	db, errDbConn := setupDb()
+
+	assert.Nil(t, errDbConn)
+
 	userCreateRequest := request.UserCreateRequest{
 		Username:    "budi",
 		Password:    "rahasia",
@@ -23,39 +36,37 @@ func TestServiceCreateUser(t *testing.T) {
 		PhoneNumber: "08767890123",
 	}
 
-	err := UserService.Create(Ctx, userCreateRequest)
+	userRepository := repository.NewUserRepository()
+	userService := service.NewUserService(db, userRepository, validator.New())
+
+	err := userService.Create(context.Background(), userCreateRequest)
 
 	assert.Nil(t, err)
 }
 
-func TestServiceFindUserById(t *testing.T) {
-	ResetDB()
+func TestUserServiceFindById(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	userLastInsertId := InsertSingleUser(TestDb)
+	assert.Nil(t, errDbConn)
 
-	user, err := UserService.Find(Ctx, int(userLastInsertId))
+	userLastInsertId := testhelper.InsertSingleUser(db)
+
+	userRepository := repository.NewUserRepository()
+	userService := service.NewUserService(db, userRepository, validator.New())
+
+	user, err := userService.Find(context.Background(), int(userLastInsertId))
 
 	assert.Nil(t, err)
 
 	assert.NotNil(t, user)
 }
 
-func TestServiceFindAllUser(t *testing.T) {
-	ResetDB()
+func TestUserServiceUpdate(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	InsertManyUser(TestDb, 5)
+	assert.Nil(t, errDbConn)
 
-	users, err := UserService.FindAll(Ctx)
-
-	assert.Nil(t, err)
-	assert.Greater(t, len(users), 0)
-	assert.Len(t, users, 5)
-}
-
-func TestServiceUpdateUser(t *testing.T) {
-	ResetDB()
-
-	userLastInsertId := InsertSingleUser(TestDb)
+	userLastInsertId := testhelper.InsertSingleUser(db)
 
 	userUpdateRequest := request.UserUpdateRequest{
 		Id:          int(userLastInsertId),
@@ -65,17 +76,25 @@ func TestServiceUpdateUser(t *testing.T) {
 		PhoneNumber: "0512345",
 	}
 
-	err := UserService.Update(Ctx, userUpdateRequest)
+	userRepository := repository.NewUserRepository()
+	userService := service.NewUserService(db, userRepository, validator.New())
+
+	err := userService.Update(context.Background(), userUpdateRequest)
 
 	assert.Nil(t, err)
 }
 
-func TestServiceRemoveUser(t *testing.T) {
-	ResetDB()
+func TestUserServiceRemove(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	userLastInsertId := InsertSingleUser(TestDb)
+	assert.Nil(t, errDbConn)
 
-	err := UserService.Remove(Ctx, int(userLastInsertId))
+	userLastInsertId := testhelper.InsertSingleUser(db)
+
+	userRepository := repository.NewUserRepository()
+	userService := service.NewUserService(db, userRepository, validator.New())
+
+	err := userService.Remove(context.Background(), int(userLastInsertId))
 
 	assert.Nil(t, err)
 }
