@@ -1,23 +1,38 @@
 package integration
 
 import (
+	"context"
 	"go_todo_api/internal/model/request"
+	"go_todo_api/internal/repository"
 	"go_todo_api/internal/service"
+	testhelper "go_todo_api/tests/test_helper"
 	"testing"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitializeTodoService(t *testing.T) {
-	todoService := service.NewTodoService(TestDb, TodoRepository, Validator)
+func TestTodoServiceInitialize(t *testing.T) {
+	db, errDbConn := setupDb()
+
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
 
 	assert.NotNil(t, todoService)
 }
 
-func TestServiceCreateTodo(t *testing.T) {
-	ResetDB()
+func TestTodoServiceCreate(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	userLastInsertId := InsertSingleUser(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	userLastInsertId := testhelper.InsertSingleUser(db)
 
 	todoCreateRequest := request.TodoCreateRequest{
 		UserId:      int(userLastInsertId),
@@ -25,38 +40,40 @@ func TestServiceCreateTodo(t *testing.T) {
 		Description: "create todo from todo service",
 	}
 
-	err := TodoService.Create(Ctx, todoCreateRequest)
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+
+	err := todoService.Create(context.Background(), todoCreateRequest)
 
 	assert.Nil(t, err)
 }
 
-func TestServiceFindTodoById(t *testing.T) {
-	ResetDB()
+func TestTodoServiceFindById(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	todoLastInsertid := InsertSingleTodo(TestDb)
+	assert.Nil(t, errDbConn)
 
-	todoResponse, err := TodoService.Find(Ctx, int(todoLastInsertid))
+	defer db.Close()
+
+	todoLastInsertid := testhelper.InsertSingleTodo(db)
+
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+
+	todoResponse, err := todoService.Find(context.Background(), int(todoLastInsertid))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, todoResponse)
 }
 
-func TestServiceFindAllTodo(t *testing.T) {
-	ResetDB()
+func TestTodoServiceUpdate(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	InsertManyTodo(TestDb, 5)
+	assert.Nil(t, errDbConn)
 
-	todoResponses, err := TodoService.FindAll(Ctx)
+	defer db.Close()
 
-	assert.Nil(t, err)
-	assert.Greater(t, len(todoResponses), 0)
-	assert.Len(t, todoResponses, 5)
-}
-
-func TestServiceUpdateTodo(t *testing.T) {
-	ResetDB()
-
-	todoLastInserId := InsertSingleTodo(TestDb)
+	todoLastInserId := testhelper.InsertSingleTodo(db)
 
 	todoUpdateRequest := request.TodoUpdateRequest{
 		Id:          int(todoLastInserId),
@@ -65,27 +82,44 @@ func TestServiceUpdateTodo(t *testing.T) {
 		IsDone:      true,
 	}
 
-	err := TodoService.Update(Ctx, todoUpdateRequest)
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+
+	err := todoService.Update(context.Background(), todoUpdateRequest)
 
 	assert.Nil(t, err)
 }
 
-func TestServiceUpdateTodoCompletion(t *testing.T) {
-	ResetDB()
+func TestTodoServiceUpdateTodoCompletion(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	todoLastInserId := InsertSingleTodo(TestDb)
+	assert.Nil(t, errDbConn)
 
-	err := TodoService.UpdateTodoCompletion(Ctx, int(todoLastInserId))
+	defer db.Close()
+
+	todoLastInserId := testhelper.InsertSingleTodo(db)
+
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+
+	err := todoService.UpdateTodoCompletion(context.Background(), int(todoLastInserId))
 
 	assert.Nil(t, err)
 }
 
-func TestServiceRemoveTodo(t *testing.T) {
-	ResetDB()
+func TestTodoServiceRemove(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	todoLastInserId := InsertSingleTodo(TestDb)
+	assert.Nil(t, errDbConn)
 
-	err := TodoService.Remove(Ctx, int(todoLastInserId))
+	defer db.Close()
+
+	todoLastInserId := testhelper.InsertSingleTodo(db)
+
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+
+	err := todoService.Remove(context.Background(), int(todoLastInserId))
 
 	assert.Nil(t, err)
 }

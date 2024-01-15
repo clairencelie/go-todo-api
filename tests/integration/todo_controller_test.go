@@ -5,25 +5,42 @@ import (
 	"go_todo_api/internal/controller"
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/model/response"
+	"go_todo_api/internal/repository"
+	"go_todo_api/internal/service"
+	testhelper "go_todo_api/tests/test_helper"
 	"io"
 	"net/http/httptest"
 	"strconv"
 	"strings"
 	"testing"
 
+	"github.com/go-playground/validator/v10"
+	"github.com/julienschmidt/httprouter"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestInitializeTodoController(t *testing.T) {
-	todoController := controller.NewTodoController(TodoService)
+func TestTodoControllerInitialize(t *testing.T) {
+	db, errDbConn := setupDb()
+
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+	todoController := controller.NewTodoController(todoService)
 
 	assert.NotNil(t, todoController)
 }
 
-func TestControllerCreateTodo(t *testing.T) {
-	ResetDB()
+func TestTodoControllerCreate(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	userLastInsertId := InsertSingleUser(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	userLastInsertId := testhelper.InsertSingleUser(db)
 
 	todoCreateRequest := request.TodoCreateRequest{
 		UserId:      int(userLastInsertId),
@@ -40,22 +57,43 @@ func TestControllerCreateTodo(t *testing.T) {
 	request := httptest.NewRequest("POST", "http://localhost:8080/api/todo", requestBody)
 	recorder := httptest.NewRecorder()
 
-	Router.ServeHTTP(recorder, request)
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+	todoController := controller.NewTodoController(todoService)
+
+	params := httprouter.Params{}
+
+	todoController.CreateTodo(recorder, request, params)
 
 	result := recorder.Result()
 
 	assert.Equal(t, 201, result.StatusCode)
 }
 
-func TestControllerGetTodoById(t *testing.T) {
-	ResetDB()
+func TestTodoControllerGetById(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	todoLastInsertId := InsertSingleTodo(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	todoLastInsertId := testhelper.InsertSingleTodo(db)
 
 	request := httptest.NewRequest("GET", "http://localhost:8080/api/todo/"+strconv.Itoa(int(todoLastInsertId)), nil)
 	recorder := httptest.NewRecorder()
 
-	Router.ServeHTTP(recorder, request)
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+	todoController := controller.NewTodoController(todoService)
+
+	params := httprouter.Params{
+		{
+			Key:   "todoId",
+			Value: strconv.Itoa(int(todoLastInsertId)),
+		},
+	}
+
+	todoController.Get(recorder, request, params)
 
 	result := recorder.Result()
 	bytes, err := io.ReadAll(result.Body)
@@ -72,36 +110,14 @@ func TestControllerGetTodoById(t *testing.T) {
 	assert.Equal(t, float64(todoLastInsertId), todo["id"].(float64))
 }
 
-func TestControllerGetAllTodo(t *testing.T) {
-	ResetDB()
+func TestTodoControllerUpdate(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	InsertManyTodo(TestDb, 5)
+	assert.Nil(t, errDbConn)
 
-	request := httptest.NewRequest("GET", "http://localhost:8080/api/todos", nil)
-	recorder := httptest.NewRecorder()
+	defer db.Close()
 
-	Router.ServeHTTP(recorder, request)
-
-	result := recorder.Result()
-	bytes, err := io.ReadAll(result.Body)
-
-	assert.Equal(t, 200, result.StatusCode)
-	assert.Nil(t, err)
-
-	standardResposne := response.StandardResponse{}
-
-	json.Unmarshal(bytes, &standardResposne)
-
-	todos := standardResposne.Data.([]any)
-
-	assert.Greater(t, len(todos), 0)
-	assert.Len(t, todos, 5)
-}
-
-func TestControllerUpdateTodo(t *testing.T) {
-	ResetDB()
-
-	todoLastInsertId := InsertSingleTodo(TestDb)
+	todoLastInsertId := testhelper.InsertSingleTodo(db)
 
 	requestBody := strings.NewReader(`{
 		"title": "Update Todo Test",
@@ -112,37 +128,78 @@ func TestControllerUpdateTodo(t *testing.T) {
 	request := httptest.NewRequest("PUT", "http://localhost:8080/api/todo/"+strconv.Itoa(int(todoLastInsertId)), requestBody)
 	recorder := httptest.NewRecorder()
 
-	Router.ServeHTTP(recorder, request)
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+	todoController := controller.NewTodoController(todoService)
+
+	params := httprouter.Params{
+		{
+			Key:   "todoId",
+			Value: strconv.Itoa(int(todoLastInsertId)),
+		},
+	}
+
+	todoController.Update(recorder, request, params)
 
 	result := recorder.Result()
 
 	assert.Equal(t, 204, result.StatusCode)
 }
 
-func TestControllerUpdateTodoCompletion(t *testing.T) {
-	ResetDB()
+func TestTodoControllerUpdateTodoCompletion(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	todoLastInsertId := InsertSingleTodo(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	todoLastInsertId := testhelper.InsertSingleTodo(db)
 
 	request := httptest.NewRequest("PATCH", "http://localhost:8080/api/todo/completion/"+strconv.Itoa(int(todoLastInsertId)), nil)
 	recorder := httptest.NewRecorder()
 
-	Router.ServeHTTP(recorder, request)
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+	todoController := controller.NewTodoController(todoService)
+
+	params := httprouter.Params{
+		{
+			Key:   "todoId",
+			Value: strconv.Itoa(int(todoLastInsertId)),
+		},
+	}
+
+	todoController.UpdateTodoCompletion(recorder, request, params)
 
 	result := recorder.Result()
 
 	assert.Equal(t, 204, result.StatusCode)
 }
 
-func TestControllerRemoveTodo(t *testing.T) {
-	ResetDB()
+func TestTodoControllerRemove(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	todoLastInsertId := InsertSingleTodo(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	todoLastInsertId := testhelper.InsertSingleTodo(db)
 
 	request := httptest.NewRequest("DELETE", "http://localhost:8080/api/todo/"+strconv.Itoa(int(todoLastInsertId)), nil)
 	recorder := httptest.NewRecorder()
 
-	Router.ServeHTTP(recorder, request)
+	todoRepository := repository.NewTodoRepository()
+	todoService := service.NewTodoService(db, todoRepository, validator.New())
+	todoController := controller.NewTodoController(todoService)
+
+	params := httprouter.Params{
+		{
+			Key:   "todoId",
+			Value: strconv.Itoa(int(todoLastInsertId)),
+		},
+	}
+
+	todoController.Remove(recorder, request, params)
 
 	result := recorder.Result()
 

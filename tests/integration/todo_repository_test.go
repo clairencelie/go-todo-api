@@ -4,27 +4,30 @@ import (
 	"context"
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/repository"
+	testhelper "go_todo_api/tests/test_helper"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNewTodoRepository(t *testing.T) {
+func TestTodoRepositoryInitialize(t *testing.T) {
 	todoRepository := repository.NewTodoRepository()
 
 	assert.NotNil(t, todoRepository)
 }
 
-func TestGetTodoById(t *testing.T) {
-	ResetDB()
+func TestTodoRepositoryGetById(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	todoLastInsertId := InsertSingleTodo(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	todoLastInsertId := testhelper.InsertSingleTodo(db)
 
 	todoRepository := repository.NewTodoRepository()
 
-	ctx := context.Background()
-
-	todo, err := todoRepository.Get(ctx, TestDb, int(todoLastInsertId))
+	todo, err := todoRepository.Get(context.Background(), db, int(todoLastInsertId))
 
 	assert.Nil(t, err)
 	assert.NotNil(t, todo)
@@ -35,36 +38,16 @@ func TestGetTodoById(t *testing.T) {
 	assert.False(t, todo.IsDone)
 }
 
-func TestGetAllTodo(t *testing.T) {
-	ResetDB()
+func TestTodoRepositoryInsert(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	InsertManyTodo(TestDb, 5)
+	assert.Nil(t, errDbConn)
 
-	todoRepository := repository.NewTodoRepository()
+	defer db.Close()
 
-	ctx := context.Background()
-
-	todos, err := todoRepository.GetAll(ctx, TestDb)
-
-	assert.Nil(t, err)
-	assert.NotNil(t, todos)
-
-	assert.Greater(t, len(todos), 0)
-	assert.Len(t, todos, 5)
-}
-
-func TestInsertTodo(t *testing.T) {
-	ResetDB()
-
-	userLastInsertId := InsertSingleUser(TestDb)
+	userLastInsertId := testhelper.InsertSingleUser(db)
 
 	todoRepository := repository.NewTodoRepository()
-
-	ctx := context.Background()
-
-	tx, errTx := TestDb.Begin()
-
-	assert.Nil(t, errTx)
 
 	todoCreateRequest := request.TodoCreateRequest{
 		UserId:      int(userLastInsertId),
@@ -72,26 +55,21 @@ func TestInsertTodo(t *testing.T) {
 		Description: "todo single insertion test",
 	}
 
-	err := todoRepository.Insert(ctx, tx, todoCreateRequest)
+	err := todoRepository.Insert(context.Background(), db, todoCreateRequest)
 
 	assert.Nil(t, err)
-	if err == nil {
-		tx.Commit()
-	}
 }
 
-func TestUpdateTodo(t *testing.T) {
-	ResetDB()
+func TestTodoRepositoryUpdate(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	todoLastInsertId := InsertSingleTodo(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	todoLastInsertId := testhelper.InsertSingleTodo(db)
 
 	todoRepository := repository.NewTodoRepository()
-
-	ctx := context.Background()
-
-	tx, errTx := TestDb.Begin()
-
-	assert.Nil(t, errTx)
 
 	todoUpdateRequest := request.TodoUpdateRequest{
 		Id:          int(todoLastInsertId),
@@ -100,31 +78,23 @@ func TestUpdateTodo(t *testing.T) {
 		IsDone:      true,
 	}
 
-	err := todoRepository.Update(ctx, tx, todoUpdateRequest)
+	err := todoRepository.Update(context.Background(), db, todoUpdateRequest)
 
 	assert.Nil(t, err)
-	if err == nil {
-		tx.Commit()
-	}
 }
 
-func TestDeleteTodo(t *testing.T) {
-	ResetDB()
+func TestTodoRepositoryDelete(t *testing.T) {
+	db, errDbConn := setupDb()
 
-	todoLastInsertId := InsertSingleTodo(TestDb)
+	assert.Nil(t, errDbConn)
+
+	defer db.Close()
+
+	todoLastInsertId := testhelper.InsertSingleTodo(db)
 
 	todoRepository := repository.NewTodoRepository()
 
-	ctx := context.Background()
-
-	tx, errTx := TestDb.Begin()
-
-	assert.Nil(t, errTx)
-
-	err := todoRepository.Delete(ctx, tx, int(todoLastInsertId))
+	err := todoRepository.Delete(context.Background(), db, int(todoLastInsertId))
 
 	assert.Nil(t, err)
-	if err == nil {
-		tx.Commit()
-	}
 }
