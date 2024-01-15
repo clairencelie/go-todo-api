@@ -2,6 +2,7 @@ package testhelper
 
 import (
 	"database/sql"
+	"go_todo_api/internal/helper"
 	"strconv"
 )
 
@@ -11,7 +12,13 @@ func ResetDB(testDb *sql.DB) {
 }
 
 func InsertSingleUser(testDb *sql.DB) int64 {
-	userSqlResult, errExecUser := testDb.Exec("INSERT INTO users (username, password, name, email, phone_number) VALUES ('budi', 'rahasia', 'Budi', 'budi@example.xyz', '081234567')")
+	hashedPassword, errHashingPassword := helper.HashPassword("rahasia")
+
+	if errHashingPassword != nil {
+		panic(errHashingPassword)
+	}
+
+	userSqlResult, errExecUser := testDb.Exec("INSERT INTO users (username, password, name, email, phone_number) VALUES ('budi', ?, 'Budi', 'budi@example.xyz', '081234567')", hashedPassword)
 
 	if errExecUser != nil {
 		panic(errExecUser)
