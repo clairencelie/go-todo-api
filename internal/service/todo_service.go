@@ -13,7 +13,6 @@ import (
 type TodoService interface {
 	Find(ctx context.Context, todoId int) (response.TodoResponse, error)
 	FindUserTodos(ctx context.Context, userId int) ([]response.TodoResponse, error)
-	FindAll(ctx context.Context) ([]response.TodoResponse, error)
 	Create(ctx context.Context, todo request.TodoCreateRequest) error
 	Update(ctx context.Context, todo request.TodoUpdateRequest) error
 	UpdateTodoCompletion(ctx context.Context, todoId int) error
@@ -81,110 +80,54 @@ func (todoService *TodoServiceImpl) FindUserTodos(ctx context.Context, userId in
 	return todoResponses, nil
 }
 
-func (todoService *TodoServiceImpl) FindAll(ctx context.Context) ([]response.TodoResponse, error) {
-	todos, err := todoService.todoRepository.GetAll(ctx, todoService.db)
-
-	if err != nil {
-		return nil, err
-	}
-
-	todoResponses := []response.TodoResponse{}
-
-	for _, todo := range todos {
-		todoResponse := response.TodoResponse{
-			Id:          todo.Id,
-			UserId:      todo.UserId,
-			Title:       todo.Title,
-			Description: todo.Description,
-			IsDone:      todo.IsDone,
-			CreatedAt:   todo.CreatedAt,
-			UpdatedAt:   todo.UpdatedAt,
-		}
-
-		todoResponses = append(todoResponses, todoResponse)
-	}
-
-	return todoResponses, nil
-}
-
 func (todoService *TodoServiceImpl) Create(ctx context.Context, todo request.TodoCreateRequest) error {
 	errValidation := todoService.validate.StructCtx(ctx, todo)
+
 	if errValidation != nil {
 		return errValidation
 	}
 
-	tx, errTxBegin := todoService.db.Begin()
-
-	if errTxBegin != nil {
-		return errTxBegin
-	}
-
-	err := todoService.todoRepository.Insert(ctx, tx, todo)
+	err := todoService.todoRepository.Insert(ctx, todoService.db, todo)
 
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	tx.Commit()
 	return nil
 }
 
 func (todoService *TodoServiceImpl) Update(ctx context.Context, todo request.TodoUpdateRequest) error {
 	errValidation := todoService.validate.StructCtx(ctx, todo)
+
 	if errValidation != nil {
 		return errValidation
 	}
 
-	tx, errTxBegin := todoService.db.Begin()
-
-	if errTxBegin != nil {
-		return errTxBegin
-	}
-
-	err := todoService.todoRepository.Update(ctx, tx, todo)
+	err := todoService.todoRepository.Update(ctx, todoService.db, todo)
 
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	tx.Commit()
 	return nil
 }
 
 func (todoService *TodoServiceImpl) UpdateTodoCompletion(ctx context.Context, todoId int) error {
-	tx, errTxBegin := todoService.db.Begin()
-
-	if errTxBegin != nil {
-		return errTxBegin
-	}
-
-	err := todoService.todoRepository.UpdateTodoCompletion(ctx, tx, todoId)
+	err := todoService.todoRepository.UpdateTodoCompletion(ctx, todoService.db, todoId)
 
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	tx.Commit()
 	return nil
 }
 
 func (todoService *TodoServiceImpl) Remove(ctx context.Context, todoId int) error {
-	tx, errTxBegin := todoService.db.Begin()
-
-	if errTxBegin != nil {
-		return errTxBegin
-	}
-
-	err := todoService.todoRepository.Delete(ctx, tx, todoId)
+	err := todoService.todoRepository.Delete(ctx, todoService.db, todoId)
 
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 
-	tx.Commit()
 	return nil
 }

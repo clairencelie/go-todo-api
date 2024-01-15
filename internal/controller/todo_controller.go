@@ -17,7 +17,6 @@ type TodoController interface {
 	CreateTodo(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Get(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	GetUserTodos(w http.ResponseWriter, r *http.Request, params httprouter.Params)
-	GetAll(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Update(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	UpdateTodoCompletion(w http.ResponseWriter, r *http.Request, params httprouter.Params)
 	Remove(w http.ResponseWriter, r *http.Request, params httprouter.Params)
@@ -146,27 +145,6 @@ func (todoController *TodoControllerImpl) GetUserTodos(w http.ResponseWriter, r 
 	responseData.StatusCode = 200
 	responseData.Message = "todo found"
 	responseData.Data = todoResponse
-
-	helper.WriteResponse(w, responseData)
-}
-
-func (todoController *TodoControllerImpl) GetAll(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
-	responseData := helper.ResponseData{}
-
-	todoResponses, err := todoController.todoService.FindAll(r.Context())
-
-	if err != nil {
-		responseData.StatusCode = 500
-		responseData.Message = "internal server error"
-		responseData.Err = err
-
-		helper.WriteResponse(w, responseData)
-		return
-	}
-
-	responseData.StatusCode = 200
-	responseData.Message = "todos found"
-	responseData.Data = todoResponses
 
 	helper.WriteResponse(w, responseData)
 }

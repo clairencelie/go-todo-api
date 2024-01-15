@@ -11,11 +11,10 @@ import (
 type TodoRepository interface {
 	Get(ctx context.Context, db *sql.DB, todoId int) (entity.Todo, error)
 	GetUserTodos(ctx context.Context, db *sql.DB, userId int) ([]entity.Todo, error)
-	GetAll(ctx context.Context, db *sql.DB) ([]entity.Todo, error)
-	Insert(ctx context.Context, tx *sql.Tx, todo request.TodoCreateRequest) error
-	Update(ctx context.Context, tx *sql.Tx, todo request.TodoUpdateRequest) error
-	UpdateTodoCompletion(ctx context.Context, tx *sql.Tx, todoId int) error
-	Delete(ctx context.Context, tx *sql.Tx, todoId int) error
+	Insert(ctx context.Context, db *sql.DB, todo request.TodoCreateRequest) error
+	Update(ctx context.Context, db *sql.DB, todo request.TodoUpdateRequest) error
+	UpdateTodoCompletion(ctx context.Context, db *sql.DB, todoId int) error
+	Delete(ctx context.Context, db *sql.DB, todoId int) error
 }
 
 type TodoRepositoryImpl struct {
@@ -85,38 +84,10 @@ func (repository TodoRepositoryImpl) GetUserTodos(ctx context.Context, db *sql.D
 	return todos, nil
 }
 
-func (repository TodoRepositoryImpl) GetAll(ctx context.Context, db *sql.DB) ([]entity.Todo, error) {
-	query := "SELECT id, user_id, title, description, is_done, created_at, updated_at FROM todos"
-
-	rows, queryErr := db.Query(query)
-
-	if queryErr != nil {
-		return nil, queryErr
-	}
-
-	defer rows.Close()
-
-	todos := []entity.Todo{}
-
-	for rows.Next() {
-		todo := entity.Todo{}
-
-		err := rows.Scan(&todo.Id, &todo.UserId, &todo.Title, &todo.Description, &todo.IsDone, &todo.CreatedAt, &todo.UpdatedAt)
-
-		if err != nil {
-			return nil, err
-		}
-
-		todos = append(todos, todo)
-	}
-
-	return todos, nil
-}
-
-func (repository TodoRepositoryImpl) Insert(ctx context.Context, tx *sql.Tx, todo request.TodoCreateRequest) error {
+func (repository TodoRepositoryImpl) Insert(ctx context.Context, db *sql.DB, todo request.TodoCreateRequest) error {
 	query := "INSERT INTO todos (user_id, title, description) VALUES (?, ?, ?)"
 
-	stmt, errPrepare := tx.PrepareContext(ctx, query)
+	stmt, errPrepare := db.PrepareContext(ctx, query)
 
 	if errPrepare != nil {
 		return errPrepare
@@ -137,10 +108,10 @@ func (repository TodoRepositoryImpl) Insert(ctx context.Context, tx *sql.Tx, tod
 	return nil
 }
 
-func (repository TodoRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, todo request.TodoUpdateRequest) error {
+func (repository TodoRepositoryImpl) Update(ctx context.Context, db *sql.DB, todo request.TodoUpdateRequest) error {
 	query := "UPDATE todos SET title=?, description=?, is_done=? WHERE id=?"
 
-	stmt, errPrepare := tx.PrepareContext(ctx, query)
+	stmt, errPrepare := db.PrepareContext(ctx, query)
 
 	if errPrepare != nil {
 		return errPrepare
@@ -161,10 +132,10 @@ func (repository TodoRepositoryImpl) Update(ctx context.Context, tx *sql.Tx, tod
 	return nil
 }
 
-func (repository TodoRepositoryImpl) UpdateTodoCompletion(ctx context.Context, tx *sql.Tx, todoId int) error {
+func (repository TodoRepositoryImpl) UpdateTodoCompletion(ctx context.Context, db *sql.DB, todoId int) error {
 	query := "UPDATE todos SET is_done = NOT is_done WHERE id = ?"
 
-	stmt, errPrepare := tx.PrepareContext(ctx, query)
+	stmt, errPrepare := db.PrepareContext(ctx, query)
 
 	if errPrepare != nil {
 		return errPrepare
@@ -185,10 +156,10 @@ func (repository TodoRepositoryImpl) UpdateTodoCompletion(ctx context.Context, t
 	return nil
 }
 
-func (repository TodoRepositoryImpl) Delete(ctx context.Context, tx *sql.Tx, todoId int) error {
+func (repository TodoRepositoryImpl) Delete(ctx context.Context, db *sql.DB, todoId int) error {
 	query := "DELETE FROM todos WHERE id = ?"
 
-	stmt, errPrepare := tx.PrepareContext(ctx, query)
+	stmt, errPrepare := db.PrepareContext(ctx, query)
 
 	if errPrepare != nil {
 		return errPrepare
