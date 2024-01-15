@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"go_todo_api/internal/helper"
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/model/response"
 	"go_todo_api/internal/repository"
@@ -49,7 +50,7 @@ func (authService *AuthServiceImpl) Login(ctx context.Context, loginRequest requ
 		return response.UserResponse{}, err
 	}
 
-	if loginRequest.Password != user.Password {
+	if !helper.CheckPassword(loginRequest.Password, user.Password) {
 		return response.UserResponse{}, ErrLoginFailed
 	}
 

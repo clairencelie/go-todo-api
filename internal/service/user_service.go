@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"database/sql"
+	"go_todo_api/internal/helper"
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/model/response"
 	"go_todo_api/internal/repository"
@@ -58,6 +59,14 @@ func (userService *UserServiceImpl) Create(ctx context.Context, user request.Use
 	if err := userService.validate.StructCtx(ctx, user); err != nil {
 		return err
 	}
+
+	hashedPassword, errHashingPassword := helper.HashPassword(user.Password)
+
+	if errHashingPassword != nil {
+		return errHashingPassword
+	}
+
+	user.Password = hashedPassword
 
 	err := userService.userRepository.Insert(ctx, userService.db, user)
 
