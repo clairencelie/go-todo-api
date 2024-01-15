@@ -51,7 +51,6 @@ func TestUserRepositoryGetById(t *testing.T) {
 
 	assert.Equal(t, int(userLastInsertId), user.Id)
 	assert.Equal(t, "budi", user.Username)
-	assert.Equal(t, "rahasia", user.Password)
 	assert.Equal(t, "Budi", user.Name)
 	assert.Equal(t, "budi@example.xyz", user.Email)
 	assert.Equal(t, "081234567", user.PhoneNumber)

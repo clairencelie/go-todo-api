@@ -32,7 +32,7 @@ var todoSet = wire.NewSet(
 	controller.NewTodoController,
 )
 
-func InitializeServer() *http.Server {
+func InitializeServer() (*http.Server, func()) {
 	wire.Build(
 		NewDB,
 		validator.NewValidator,
@@ -44,5 +44,5 @@ func InitializeServer() *http.Server {
 		NewServer,
 	)
 
-	return nil
+	return nil, nil
 }

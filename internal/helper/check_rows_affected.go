@@ -2,11 +2,6 @@ package helper
 
 import (
 	"database/sql"
-	"errors"
-)
-
-var (
-	ErrRowsNotAffected = errors.New("no rows affected")
 )
 
 func CheckRowsAffected(sqlResult sql.Result) error {

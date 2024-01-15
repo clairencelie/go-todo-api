@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"go_todo_api/internal/helper"
 	"go_todo_api/internal/model/entity"
 	"go_todo_api/internal/model/request"
@@ -24,10 +23,6 @@ type UserRepositoryImpl struct {
 func NewUserRepository() UserRepository {
 	return &UserRepositoryImpl{}
 }
-
-var (
-	ErrNotFound = errors.New("data not found")
-)
 
 func (repository UserRepositoryImpl) Get(ctx context.Context, db *sql.DB, userId int) (entity.User, error) {
 	query := "SELECT id, username, password, name, email, phone_number, created_at, updated_at FROM users WHERE id = ? LIMIT 1"
@@ -58,7 +53,7 @@ func (repository UserRepositoryImpl) Get(ctx context.Context, db *sql.DB, userId
 		return user, nil
 	}
 
-	return entity.User{}, ErrNotFound
+	return entity.User{}, helper.ErrNotFound
 }
 
 func (repository UserRepositoryImpl) GetByUsername(ctx context.Context, db *sql.DB, username string) (entity.User, error) {
@@ -90,7 +85,7 @@ func (repository UserRepositoryImpl) GetByUsername(ctx context.Context, db *sql.
 		return user, nil
 	}
 
-	return entity.User{}, ErrNotFound
+	return entity.User{}, helper.ErrNotFound
 }
 
 func (repository UserRepositoryImpl) Insert(ctx context.Context, db *sql.DB, user request.UserCreateRequest) error {

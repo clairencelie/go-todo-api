@@ -22,8 +22,8 @@ import (
 
 // Injectors from injector.go:
 
-func InitializeServer() *http.Server {
-	db := NewDB()
+func InitializeServer() (*http.Server, func()) {
+	db, cleanup := NewDB()
 	userRepository := repository.NewUserRepository()
 	validate := validator.NewValidator()
 	userService := service.NewUserService(db, userRepository, validate)
@@ -35,7 +35,9 @@ func InitializeServer() *http.Server {
 	authController := controller.NewAuthController(authService)
 	httprouterRouter := router.NewRouter(userController, todoController, authController)
 	server := NewServer(httprouterRouter)
-	return server
+	return server, func() {
+		cleanup()
+	}
 }
 
 // injector.go:

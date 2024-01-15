@@ -30,10 +30,6 @@ func NewAuthService(db *sql.DB, userRepository repository.UserRepository, valida
 	}
 }
 
-var (
-	ErrLoginFailed = errors.New("invalid username or password")
-)
-
 func (authService *AuthServiceImpl) Login(ctx context.Context, loginRequest request.UserLoginRequest) (response.UserResponse, error) {
 	errValidation := authService.validate.StructCtx(ctx, loginRequest)
 
@@ -44,14 +40,14 @@ func (authService *AuthServiceImpl) Login(ctx context.Context, loginRequest requ
 	user, err := authService.userRepository.GetByUsername(ctx, authService.db, loginRequest.Username)
 
 	if err != nil {
-		if errors.Is(repository.ErrNotFound, err) {
-			return response.UserResponse{}, ErrLoginFailed
+		if errors.Is(helper.ErrNotFound, err) {
+			return response.UserResponse{}, helper.ErrLoginFailed
 		}
 		return response.UserResponse{}, err
 	}
 
 	if !helper.CheckPassword(loginRequest.Password, user.Password) {
-		return response.UserResponse{}, ErrLoginFailed
+		return response.UserResponse{}, helper.ErrLoginFailed
 	}
 
 	userResponse := response.UserResponse{

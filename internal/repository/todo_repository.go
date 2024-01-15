@@ -53,7 +53,7 @@ func (repository TodoRepositoryImpl) Get(ctx context.Context, db *sql.DB, todoId
 		return todo, nil
 	}
 
-	return entity.Todo{}, ErrNotFound
+	return entity.Todo{}, helper.ErrNotFound
 }
 
 func (repository TodoRepositoryImpl) GetUserTodos(ctx context.Context, db *sql.DB, userId int) ([]entity.Todo, error) {

@@ -1,15 +1,12 @@
 package controller
 
 import (
-	"errors"
 	"go_todo_api/internal/helper"
 	"go_todo_api/internal/model/request"
-	"go_todo_api/internal/repository"
 	"go_todo_api/internal/service"
 	"net/http"
 	"strconv"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/julienschmidt/httprouter"
 )
 
@@ -34,37 +31,19 @@ func (userController *UserControllerImpl) CreateUser(w http.ResponseWriter, r *h
 	userCreateRequest := request.UserCreateRequest{}
 
 	if errReadBody := helper.ReadRequestBody(r, &userCreateRequest); errReadBody != nil {
-		responseData := helper.ResponseData{
-			StatusCode: 500,
-			Message:    "failed to read request body",
-			Err:        errReadBody,
-		}
-		helper.WriteResponse(w, responseData)
+		helper.WriteErrorResponse(w, errReadBody)
 		return
 	}
 
-	if errCreateUser := userController.userService.Create(r.Context(), userCreateRequest); errCreateUser != nil {
-		if validationErrors, ok := errCreateUser.(validator.ValidationErrors); ok {
-			responseData := helper.ResponseData{
-				StatusCode: 400,
-				Message:    "validation error",
-				Err:        validationErrors,
-			}
-			helper.WriteResponse(w, responseData)
-			return
-		}
+	errCreateUser := userController.userService.Create(r.Context(), userCreateRequest)
 
-		responseData := helper.ResponseData{
-			StatusCode: 500,
-			Message:    "failed to create new user",
-			Err:        errCreateUser,
-		}
-		helper.WriteResponse(w, responseData)
+	if errCreateUser != nil {
+		helper.WriteErrorResponse(w, errCreateUser)
 		return
 	}
 
 	responseData := helper.ResponseData{
-		StatusCode: 201,
+		StatusCode: http.StatusCreated,
 		Message:    "new user created",
 	}
 
@@ -77,38 +56,23 @@ func (userController *UserControllerImpl) Get(w http.ResponseWriter, r *http.Req
 	userId, errCastToInt := strconv.Atoi(userIdString)
 
 	if errCastToInt != nil {
-		responseData := helper.ResponseData{
-			StatusCode: 500,
-			Message:    "failed to cast user id to int",
-			Err:        errCastToInt,
-		}
-		helper.WriteResponse(w, responseData)
+		helper.WriteErrorResponse(w, errCastToInt)
 		return
 	}
 
 	userResponse, err := userController.userService.Find(r.Context(), userId)
 
 	if err != nil {
-		responseData := helper.ResponseData{
-			StatusCode: 500,
-			Message:    "internal server error",
-			Err:        err,
-		}
-
-		if errors.Is(repository.ErrNotFound, err) {
-			responseData.StatusCode = 404
-			responseData.Message = "user not found"
-		}
-
-		helper.WriteResponse(w, responseData)
+		helper.WriteErrorResponse(w, err)
 		return
 	}
 
 	responseData := helper.ResponseData{
-		StatusCode: 200,
+		StatusCode: http.StatusOK,
 		Message:    "user found",
 		Data:       userResponse,
 	}
+
 	helper.WriteResponse(w, responseData)
 }
 
@@ -118,12 +82,7 @@ func (userController *UserControllerImpl) Update(w http.ResponseWriter, r *http.
 	userId, errCastToInt := strconv.Atoi(userIdString)
 
 	if errCastToInt != nil {
-		responseData := helper.ResponseData{
-			StatusCode: 500,
-			Message:    "failed to cast used id",
-			Err:        errCastToInt,
-		}
-		helper.WriteResponse(w, responseData)
+		helper.WriteErrorResponse(w, errCastToInt)
 		return
 	}
 
@@ -132,40 +91,21 @@ func (userController *UserControllerImpl) Update(w http.ResponseWriter, r *http.
 	}
 
 	if errReadBody := helper.ReadRequestBody(r, &userUpdateRequest); errReadBody != nil {
-		responseData := helper.ResponseData{
-			StatusCode: 500,
-			Message:    "failed to read request body",
-			Err:        errReadBody,
-		}
-		helper.WriteResponse(w, responseData)
+		helper.WriteErrorResponse(w, errReadBody)
 		return
 	}
 
 	err := userController.userService.Update(r.Context(), userUpdateRequest)
 
 	if err != nil {
-		if validationErrors, ok := err.(validator.ValidationErrors); ok {
-			responseData := helper.ResponseData{
-				StatusCode: 400,
-				Message:    "validation error",
-				Err:        validationErrors,
-			}
-			helper.WriteResponse(w, responseData)
-			return
-		}
-
-		responseData := helper.ResponseData{
-			StatusCode: 500,
-			Message:    "internal server error",
-			Err:        err,
-		}
-		helper.WriteResponse(w, responseData)
+		helper.WriteErrorResponse(w, err)
 		return
 	}
 
 	responseData := helper.ResponseData{
-		StatusCode: 204,
+		StatusCode: http.StatusNoContent,
 	}
+
 	helper.WriteResponse(w, responseData)
 }
 
@@ -175,29 +115,20 @@ func (userController *UserControllerImpl) Remove(w http.ResponseWriter, r *http.
 	userId, errCastToInt := strconv.Atoi(userIdString)
 
 	if errCastToInt != nil {
-		responseData := helper.ResponseData{
-			StatusCode: 500,
-			Message:    "failed to cast used id",
-			Err:        errCastToInt,
-		}
-		helper.WriteResponse(w, responseData)
+		helper.WriteErrorResponse(w, errCastToInt)
 		return
 	}
 
 	err := userController.userService.Remove(r.Context(), userId)
 
 	if err != nil {
-		responseData := helper.ResponseData{
-			StatusCode: 500,
-			Message:    "internal server error",
-			Err:        err,
-		}
-		helper.WriteResponse(w, responseData)
+		helper.WriteErrorResponse(w, err)
 		return
 	}
 
 	responseData := helper.ResponseData{
-		StatusCode: 204,
+		StatusCode: http.StatusNoContent,
 	}
+
 	helper.WriteResponse(w, responseData)
 }

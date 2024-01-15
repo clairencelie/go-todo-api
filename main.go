@@ -16,13 +16,20 @@ func NewServer(handler http.Handler) *http.Server {
 	}
 }
 
-func NewDB() *sql.DB {
+func NewDB() (*sql.DB, func()) {
 	db, _ := database.NewDB(".", false)
-	return db
+
+	cleanup := func() {
+		db.Close()
+	}
+
+	return db, cleanup
 }
 
 func main() {
-	server := InitializeServer()
+	server, closeDb := InitializeServer()
+
+	defer closeDb()
 
 	err := server.ListenAndServe()
 
