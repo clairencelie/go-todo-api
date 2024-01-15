@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"go_todo_api/database"
 	"net/http"
+	"os"
+	"os/signal"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -27,13 +30,36 @@ func NewDB() (*sql.DB, func()) {
 }
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+
+	go func() {
+		for sig := range c {
+			fmt.Println(sig)
+			cancel()
+		}
+	}()
+
 	server, closeDb := InitializeServer()
 
-	defer closeDb()
+	defer func() {
+		fmt.Println("Closing DB...")
+		closeDb()
+		fmt.Println("DB Closed...")
+		cancel()
+	}()
 
-	err := server.ListenAndServe()
+	go func() {
+		err := server.ListenAndServe()
+		if err != nil {
+			fmt.Println(err.Error())
+			cancel()
+		}
+	}()
 
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+	<-ctx.Done()
+
+	fmt.Println("Cleaning App")
 }
