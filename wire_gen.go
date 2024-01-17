@@ -9,6 +9,7 @@ package main
 import (
 	"github.com/google/wire"
 	"go_todo_api/internal/controller"
+	"go_todo_api/internal/middleware"
 	"go_todo_api/internal/repository"
 	"go_todo_api/internal/router"
 	"go_todo_api/internal/service"
@@ -34,7 +35,8 @@ func InitializeServer() (*http.Server, func()) {
 	authService := service.NewAuthService(db, userRepository, validate)
 	authController := controller.NewAuthController(authService)
 	httprouterRouter := router.NewRouter(userController, todoController, authController)
-	server := NewServer(httprouterRouter)
+	logMiddlewareHandler := middleware.NewLogMiddleware(httprouterRouter)
+	server := NewServer(logMiddlewareHandler)
 	return server, func() {
 		cleanup()
 	}

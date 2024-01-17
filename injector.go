@@ -5,6 +5,7 @@ package main
 
 import (
 	"go_todo_api/internal/controller"
+	"go_todo_api/internal/middleware"
 	"go_todo_api/internal/repository"
 	"go_todo_api/internal/router"
 	"go_todo_api/internal/service"
@@ -41,6 +42,7 @@ func InitializeServer() (*http.Server, func()) {
 		todoSet,
 		router.NewRouter,
 		wire.Bind(new(http.Handler), new(*httprouter.Router)),
+		middleware.NewLogMiddleware,
 		NewServer,
 	)
 

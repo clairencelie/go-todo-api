@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"go_todo_api/database"
+	"go_todo_api/internal/middleware"
 	"net/http"
 	"os"
 	"os/signal"
@@ -12,9 +13,9 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-func NewServer(handler http.Handler) *http.Server {
+func NewServer(handler middleware.LogMiddlewareHandler) *http.Server {
 	return &http.Server{
-		Addr:    "192.168.1.9:8080",
+		Addr:    "192.168.1.8:8080",
 		Handler: handler,
 	}
 }
