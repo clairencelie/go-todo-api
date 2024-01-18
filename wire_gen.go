@@ -9,6 +9,7 @@ package main
 import (
 	"github.com/google/wire"
 	"go_todo_api/internal/controller"
+	"go_todo_api/internal/helper"
 	"go_todo_api/internal/middleware"
 	"go_todo_api/internal/repository"
 	"go_todo_api/internal/router"
@@ -26,13 +27,14 @@ import (
 func InitializeServer() (*http.Server, func()) {
 	db, cleanup := NewDB()
 	userRepository := repository.NewUserRepository()
-	validate := validator.NewValidator()
-	userService := service.NewUserService(db, userRepository, validate)
+	customValidator := validator.NewValidator()
+	v := helper.HashFunction()
+	userService := service.NewUserService(db, userRepository, customValidator, v)
 	userController := controller.NewUserController(userService)
 	todoRepository := repository.NewTodoRepository()
-	todoService := service.NewTodoService(db, todoRepository, validate)
+	todoService := service.NewTodoService(db, todoRepository, customValidator)
 	todoController := controller.NewTodoController(todoService)
-	authService := service.NewAuthService(db, userRepository, validate)
+	authService := service.NewAuthService(db, userRepository, customValidator)
 	authController := controller.NewAuthController(authService)
 	httprouterRouter := router.NewRouter(userController, todoController, authController)
 	logMiddlewareHandler := middleware.NewLogMiddleware(httprouterRouter)
@@ -44,7 +46,7 @@ func InitializeServer() (*http.Server, func()) {
 
 // injector.go:
 
-var userSet = wire.NewSet(repository.NewUserRepository, service.NewUserService, controller.NewUserController)
+var userSet = wire.NewSet(repository.NewUserRepository, helper.HashFunction, service.NewUserService, controller.NewUserController)
 
 var authSet = wire.NewSet(service.NewAuthService, controller.NewAuthController)
 
