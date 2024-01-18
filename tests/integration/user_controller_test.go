@@ -3,6 +3,7 @@ package integration
 import (
 	"encoding/json"
 	"go_todo_api/internal/controller"
+	"go_todo_api/internal/helper"
 	"go_todo_api/internal/model/response"
 	"go_todo_api/internal/repository"
 	"go_todo_api/internal/service"
@@ -24,7 +25,7 @@ func TestUserControllerInitialize(t *testing.T) {
 	assert.Nil(t, errDbConn)
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(db, userRepository, validator.New())
+	userService := service.NewUserService(db, userRepository, validator.New(), helper.HashFunction())
 	userController := controller.NewUserController(userService)
 
 	assert.NotNil(t, userController)
@@ -51,7 +52,7 @@ func TestUserControllerCreate(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(db, userRepository, validator.New())
+	userService := service.NewUserService(db, userRepository, validator.New(), helper.HashFunction())
 	userController := controller.NewUserController(userService)
 
 	userController.CreateUser(recorder, request, params)
@@ -79,7 +80,7 @@ func TestUserControllerGetById(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(db, userRepository, validator.New())
+	userService := service.NewUserService(db, userRepository, validator.New(), helper.HashFunction())
 	userController := controller.NewUserController(userService)
 
 	userController.Get(recorder, request, params)
@@ -124,7 +125,7 @@ func TestUserControllerUpdate(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(db, userRepository, validator.New())
+	userService := service.NewUserService(db, userRepository, validator.New(), helper.HashFunction())
 	userController := controller.NewUserController(userService)
 
 	userController.Update(recorder, request, params)
@@ -152,7 +153,7 @@ func TestUserControllerRemove(t *testing.T) {
 	recorder := httptest.NewRecorder()
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(db, userRepository, validator.New())
+	userService := service.NewUserService(db, userRepository, validator.New(), helper.HashFunction())
 	userController := controller.NewUserController(userService)
 
 	userController.Remove(recorder, request, params)

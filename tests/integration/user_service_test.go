@@ -2,6 +2,7 @@ package integration
 
 import (
 	"context"
+	"go_todo_api/internal/helper"
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/repository"
 	"go_todo_api/internal/service"
@@ -18,7 +19,7 @@ func TestUserServiceInitialize(t *testing.T) {
 	assert.Nil(t, errDbConn)
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(db, userRepository, validator.New())
+	userService := service.NewUserService(db, userRepository, validator.New(), helper.HashFunction())
 
 	assert.NotNil(t, userService)
 }
@@ -37,7 +38,7 @@ func TestUserServiceCreate(t *testing.T) {
 	}
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(db, userRepository, validator.New())
+	userService := service.NewUserService(db, userRepository, validator.New(), helper.HashFunction())
 
 	err := userService.Create(context.Background(), userCreateRequest)
 
@@ -52,7 +53,7 @@ func TestUserServiceFindById(t *testing.T) {
 	userLastInsertId := testhelper.InsertSingleUser(db)
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(db, userRepository, validator.New())
+	userService := service.NewUserService(db, userRepository, validator.New(), helper.HashFunction())
 
 	user, err := userService.Find(context.Background(), int(userLastInsertId))
 
@@ -77,7 +78,7 @@ func TestUserServiceUpdate(t *testing.T) {
 	}
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(db, userRepository, validator.New())
+	userService := service.NewUserService(db, userRepository, validator.New(), helper.HashFunction())
 
 	err := userService.Update(context.Background(), userUpdateRequest)
 
@@ -92,7 +93,7 @@ func TestUserServiceRemove(t *testing.T) {
 	userLastInsertId := testhelper.InsertSingleUser(db)
 
 	userRepository := repository.NewUserRepository()
-	userService := service.NewUserService(db, userRepository, validator.New())
+	userService := service.NewUserService(db, userRepository, validator.New(), helper.HashFunction())
 
 	err := userService.Remove(context.Background(), int(userLastInsertId))
 
