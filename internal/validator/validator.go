@@ -1,7 +1,15 @@
 package validator
 
-import "github.com/go-playground/validator/v10"
+import (
+	"context"
 
-func NewValidator() *validator.Validate {
+	"github.com/go-playground/validator/v10"
+)
+
+type CustomValidator interface {
+	StructCtx(ctx context.Context, s interface{}) (err error)
+}
+
+func NewValidator() CustomValidator {
 	return validator.New()
 }

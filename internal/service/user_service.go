@@ -3,12 +3,10 @@ package service
 import (
 	"context"
 	"database/sql"
-	"go_todo_api/internal/helper"
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/model/response"
 	"go_todo_api/internal/repository"
-
-	"github.com/go-playground/validator/v10"
+	customvalidator "go_todo_api/internal/validator"
 )
 
 type UserService interface {
@@ -21,14 +19,16 @@ type UserService interface {
 type UserServiceImpl struct {
 	db             *sql.DB
 	userRepository repository.UserRepository
-	validate       *validator.Validate
+	validate       customvalidator.CustomValidator
+	passwordHasher func(password string) (string, error)
 }
 
-func NewUserService(db *sql.DB, userRepository repository.UserRepository, validate *validator.Validate) UserService {
+func NewUserService(db *sql.DB, userRepository repository.UserRepository, validate customvalidator.CustomValidator, passwordHasher func(password string) (string, error)) UserService {
 	return &UserServiceImpl{
 		db:             db,
 		userRepository: userRepository,
 		validate:       validate,
+		passwordHasher: passwordHasher,
 	}
 }
 
@@ -56,7 +56,7 @@ func (userService *UserServiceImpl) Create(ctx context.Context, user request.Use
 		return err
 	}
 
-	hashedPassword, errHashingPassword := helper.HashPassword(user.Password)
+	hashedPassword, errHashingPassword := userService.passwordHasher(user.Password)
 
 	if errHashingPassword != nil {
 		return errHashingPassword

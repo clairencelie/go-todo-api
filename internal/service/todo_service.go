@@ -6,8 +6,7 @@ import (
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/model/response"
 	"go_todo_api/internal/repository"
-
-	"github.com/go-playground/validator/v10"
+	customvalidator "go_todo_api/internal/validator"
 )
 
 type TodoService interface {
@@ -22,10 +21,10 @@ type TodoService interface {
 type TodoServiceImpl struct {
 	db             *sql.DB
 	todoRepository repository.TodoRepository
-	validate       *validator.Validate
+	validate       customvalidator.CustomValidator
 }
 
-func NewTodoService(db *sql.DB, todoRepository repository.TodoRepository, validate *validator.Validate) TodoService {
+func NewTodoService(db *sql.DB, todoRepository repository.TodoRepository, validate customvalidator.CustomValidator) TodoService {
 	return &TodoServiceImpl{
 		db:             db,
 		todoRepository: todoRepository,

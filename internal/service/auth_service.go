@@ -8,8 +8,7 @@ import (
 	"go_todo_api/internal/model/request"
 	"go_todo_api/internal/model/response"
 	"go_todo_api/internal/repository"
-
-	"github.com/go-playground/validator/v10"
+	customvalidator "go_todo_api/internal/validator"
 )
 
 type AuthService interface {
@@ -19,10 +18,10 @@ type AuthService interface {
 type AuthServiceImpl struct {
 	db             *sql.DB
 	userRepository repository.UserRepository
-	validate       *validator.Validate
+	validate       customvalidator.CustomValidator
 }
 
-func NewAuthService(db *sql.DB, userRepository repository.UserRepository, validate *validator.Validate) AuthService {
+func NewAuthService(db *sql.DB, userRepository repository.UserRepository, validate customvalidator.CustomValidator) AuthService {
 	return &AuthServiceImpl{
 		db:             db,
 		userRepository: userRepository,
