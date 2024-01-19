@@ -59,7 +59,13 @@ func (repository TodoRepositoryImpl) Get(ctx context.Context, db *sql.DB, todoId
 func (repository TodoRepositoryImpl) GetUserTodos(ctx context.Context, db *sql.DB, userId int) ([]entity.Todo, error) {
 	query := "SELECT id, user_id, title, description, is_done, created_at, updated_at FROM todos WHERE user_id = ?"
 
-	rows, queryErr := db.Query(query, userId)
+	stmt, errPrepare := db.PrepareContext(ctx, query)
+
+	if errPrepare != nil {
+		return nil, errPrepare
+	}
+
+	rows, queryErr := stmt.QueryContext(ctx, userId)
 
 	if queryErr != nil {
 		return nil, queryErr
