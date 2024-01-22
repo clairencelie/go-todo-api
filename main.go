@@ -45,13 +45,6 @@ func main() {
 
 	server, closeDb := InitializeServer()
 
-	defer func() {
-		fmt.Println("Closing DB...")
-		closeDb()
-		fmt.Println("DB Closed...")
-		cancel()
-	}()
-
 	go func() {
 		err := server.ListenAndServe()
 		if err != nil {
@@ -62,5 +55,8 @@ func main() {
 
 	<-ctx.Done()
 
-	fmt.Println("Cleaning App")
+	fmt.Println("Cleaning App...")
+	fmt.Println("Closing DB...")
+	closeDb()
+	fmt.Println("DB Closed...")
 }
