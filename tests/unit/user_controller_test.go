@@ -79,8 +79,7 @@ func TestUserControllerCreate(t *testing.T) {
 	userServiceMock := new(UserServiceMock)
 	userController := controller.NewUserController(userServiceMock)
 
-	ctx := context.Background()
-	userServiceMock.On("Create", ctx, mock.AnythingOfType("request.UserCreateRequest")).Return(nil)
+	userServiceMock.On("Create", request.Context(), mock.AnythingOfType("request.UserCreateRequest")).Return(nil)
 
 	userController.CreateUser(recorder, request, params)
 
@@ -103,7 +102,6 @@ func TestUserControllerGetById(t *testing.T) {
 	userServiceMock := new(UserServiceMock)
 	userController := controller.NewUserController(userServiceMock)
 
-	ctx := context.Background()
 	userResponse := response.UserResponse{
 		Id:          1,
 		Username:    "apollo",
@@ -113,7 +111,7 @@ func TestUserControllerGetById(t *testing.T) {
 		CreatedAt:   "2023-11-11 11:11:11",
 	}
 
-	userServiceMock.On("Find", ctx, 1).Return(userResponse, nil)
+	userServiceMock.On("Find", request.Context(), 1).Return(userResponse, nil)
 
 	userController.Get(recorder, request, params)
 
@@ -158,8 +156,7 @@ func TestUserControllerUpdate(t *testing.T) {
 	userServiceMock := new(UserServiceMock)
 	userController := controller.NewUserController(userServiceMock)
 
-	ctx := context.Background()
-	userServiceMock.On("Update", ctx, mock.AnythingOfType("request.UserUpdateRequest")).Return(nil)
+	userServiceMock.On("Update", request.Context(), mock.AnythingOfType("request.UserUpdateRequest")).Return(nil)
 
 	userController.Update(recorder, request, params)
 
@@ -182,8 +179,7 @@ func TestUserControllerDelete(t *testing.T) {
 	userServiceMock := new(UserServiceMock)
 	userController := controller.NewUserController(userServiceMock)
 
-	ctx := context.Background()
-	userServiceMock.On("Remove", ctx, 1).Return(nil)
+	userServiceMock.On("Remove", request.Context(), 1).Return(nil)
 
 	userController.Remove(recorder, request, params)
 
