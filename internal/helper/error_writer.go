@@ -13,7 +13,7 @@ func WriteErrorResponse(w http.ResponseWriter, err error) {
 	if errors.Is(ErrNotFound, err) {
 		responseData.StatusCode = http.StatusNotFound
 		responseData.Message = "data not found"
-	} else if errors.Is(ErrLoginFailed, err) {
+	} else if errors.Is(ErrLoginFailed, err) || err.Error() == "token has invalid claims: token is expired" {
 		responseData.StatusCode = http.StatusUnauthorized
 		responseData.Message = "unauthorized"
 	} else if _, ok := err.(validator.ValidationErrors); ok {

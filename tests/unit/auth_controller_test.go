@@ -20,14 +20,24 @@ type AuthServiceMock struct {
 	mock.Mock
 }
 
-func (mock *AuthServiceMock) Login(ctx context.Context, loginRequest request.UserLoginRequest) (response.UserResponse, error) {
+func (mock *AuthServiceMock) Login(ctx context.Context, loginRequest request.UserLoginRequest) (response.LoginResponse, error) {
 	args := mock.Called(ctx, loginRequest)
 
 	if args.Get(1) != nil {
-		return args.Get(0).(response.UserResponse), args.Get(1).(error)
+		return args.Get(0).(response.LoginResponse), args.Get(1).(error)
 	}
 
-	return args.Get(0).(response.UserResponse), nil
+	return args.Get(0).(response.LoginResponse), nil
+}
+
+func (mock *AuthServiceMock) RefreshToken(ctx context.Context, tokenRefreshRequest request.RefreshTokenRequest) (response.RefreshTokenResponse, error) {
+	args := mock.Called(ctx, tokenRefreshRequest)
+
+	if args.Get(1) != nil {
+		return args.Get(0).(response.RefreshTokenResponse), args.Get(1).(error)
+	}
+
+	return args.Get(0).(response.RefreshTokenResponse), nil
 }
 
 func TestAuthControllerLogin(t *testing.T) {
@@ -53,7 +63,13 @@ func TestAuthControllerLogin(t *testing.T) {
 		CreatedAt:   "2023-11-11 11:11:11",
 	}
 
-	authServiceMock.On("Login", request.Context(), mock.AnythingOfType("request.UserLoginRequest")).Return(userResponse, nil)
+	loginResponse := response.LoginResponse{
+		UserResponse: userResponse,
+		AccessToken:  "unittest.accesstoken",
+		RefreshToken: "unittest.refreshtoken",
+	}
+
+	authServiceMock.On("Login", request.Context(), mock.AnythingOfType("request.UserLoginRequest")).Return(loginResponse, nil)
 
 	authController.Login(recorder, request, params)
 
@@ -75,4 +91,6 @@ func TestAuthControllerLogin(t *testing.T) {
 	assert.Equal(t, userResponse.Email, user["email"])
 	assert.Equal(t, userResponse.PhoneNumber, user["phone_number"])
 	assert.Equal(t, userResponse.CreatedAt, user["created_at"])
+	assert.Equal(t, loginResponse.AccessToken, user["access_token"])
+	assert.Equal(t, loginResponse.RefreshToken, user["refresh_token"])
 }

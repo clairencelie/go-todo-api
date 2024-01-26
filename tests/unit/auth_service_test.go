@@ -43,13 +43,15 @@ func TestAuthServiceLogin(t *testing.T) {
 	}
 	userRepositoryMock.On("GetByUsername", ctx, db, loginRequest.Username).Return(expectedUser, nil)
 
-	userResponse, errLogin := authService.Login(ctx, loginRequest)
+	loginResponse, errLogin := authService.Login(ctx, loginRequest)
 	assert.NoError(t, errLogin)
 
-	assert.Equal(t, expectedUser.Id, userResponse.Id)
-	assert.Equal(t, expectedUser.Username, userResponse.Username)
-	assert.Equal(t, expectedUser.Name, userResponse.Name)
-	assert.Equal(t, expectedUser.Email, userResponse.Email)
-	assert.Equal(t, expectedUser.PhoneNumber, userResponse.PhoneNumber)
-	assert.Equal(t, expectedUser.CreatedAt, userResponse.CreatedAt)
+	assert.Equal(t, expectedUser.Id, loginResponse.Id)
+	assert.Equal(t, expectedUser.Username, loginResponse.Username)
+	assert.Equal(t, expectedUser.Name, loginResponse.Name)
+	assert.Equal(t, expectedUser.Email, loginResponse.Email)
+	assert.Equal(t, expectedUser.PhoneNumber, loginResponse.PhoneNumber)
+	assert.Equal(t, expectedUser.CreatedAt, loginResponse.CreatedAt)
+	assert.NotEmpty(t, loginResponse.AccessToken)
+	assert.NotEmpty(t, loginResponse.AccessToken)
 }

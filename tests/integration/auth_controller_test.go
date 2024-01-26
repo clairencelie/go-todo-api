@@ -58,7 +58,7 @@ func TestAuthControllerLogin(t *testing.T) {
 	bytes, err := io.ReadAll(result.Body)
 
 	assert.Equal(t, 200, result.StatusCode)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 
 	standardResposne := response.StandardResponse{}
 
