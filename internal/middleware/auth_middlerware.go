@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"errors"
 	"go_todo_api/internal/helper"
 	"net/http"
 	"strings"
@@ -14,7 +13,7 @@ func AuthMiddleware(next httprouter.Handle) httprouter.Handle {
 		authorizationHeader := r.Header.Get("Authorization")
 
 		if !strings.Contains(authorizationHeader, "Bearer") {
-			helper.WriteErrorResponse(w, errors.New("bearer token is missing"))
+			helper.WriteErrorResponse(w, helper.ErrBearerTokenMissing)
 			return
 		}
 
