@@ -1,5 +1,5 @@
 # Serve Go web server
-serve:
+run:
 	go run .
 
 # Run all integration tests
