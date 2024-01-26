@@ -11,11 +11,21 @@ import (
 	"os/signal"
 
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/joho/godotenv"
 )
 
 func NewServer(handler middleware.LogMiddlewareHandler) *http.Server {
+	errEnvLoad := godotenv.Load("config.env")
+
+	if errEnvLoad != nil {
+		fmt.Println(errEnvLoad.Error())
+		return nil
+	}
+
+	addr := os.Getenv("APP_URL")
+
 	return &http.Server{
-		Addr:    "192.168.1.8:8080",
+		Addr:    addr,
 		Handler: handler,
 	}
 }
@@ -46,6 +56,7 @@ func main() {
 	server, closeDb := InitializeServer()
 
 	go func() {
+		fmt.Println("Server running on:", "http://"+server.Addr)
 		err := server.ListenAndServe()
 		if err != nil {
 			fmt.Println(err.Error())
